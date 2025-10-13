@@ -1,5 +1,6 @@
 {
   "expo": {
+    "scheme": "app-scheme",
     "name": "RecipeHub",
     "slug": "RecipeHub",
     "version": "1.0.0",
