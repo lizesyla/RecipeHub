@@ -14,16 +14,7 @@ export default function Layout() {
           headerTitleAlign: "center",
         }}
       />
-      <Drawer.Screen
-        name="settings"
-        options={{
-          title: "Settings",
-          headerStyle: { backgroundColor: "#FF7F50" },
-          headerTintColor: "#fff",
-          headerTitleStyle: { fontWeight: "bold" },
-          headerTitleAlign: "center",
-        }}
-      />
+    
       <Drawer.Screen
         name="about"
         options={{
