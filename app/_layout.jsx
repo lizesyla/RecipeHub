@@ -26,6 +26,19 @@ export default function Layout() {
         }}
       />
 
+      <Drawer.Screen
+        name="register"
+        options={{
+          title: "Register",
+          headerStyle: { backgroundColor: "#FF7F50" },
+          headerTintColor: "#fff",
+          headerTitleStyle: { fontWeight: "bold" },
+          headerTitleAlign: "center",
+        }}
+      />
+
+ 
+
       <StatusBar style="light" />
     </Drawer>
   );
