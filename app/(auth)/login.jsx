@@ -1,10 +1,13 @@
 import { Pressable, StyleSheet , Text} from 'react-native'
-import {Link} from 'expo-router'
-import { Colors } from '../../constants/Colors'
+import {Link} from 'expo-router';
+import { Colors } from '../../constants/Colors';
 
-import ThemedView from '../../components/ThemedView'
-import ThemedText from '../../components/ThemedText'
-import Spacer from '../../components/Spacer'
+import ThemedView from '../../components/ThemedView';
+import ThemedText from '../../components/ThemedText';
+import Spacer from '../../components/Spacer';
+
+
+
 
 const Login = () => {
   return (
