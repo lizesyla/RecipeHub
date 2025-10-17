@@ -4,13 +4,12 @@ import { StatusBar } from "expo-status-bar";
 export default function Layout() {
   return (
     <>
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: "#FF7F50" },
-          headerTintColor: "#fff",
-          headerTitleStyle: { fontWeight: "bold" },
-        }}
-      />
+      {/* Fshijmë header-in e brendshëm për me mos dalë dy herë */}
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="addrecipe" />
+      </Stack>
+
       <StatusBar style="light" />
     </>
   );

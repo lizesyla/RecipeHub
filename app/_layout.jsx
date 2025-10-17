@@ -14,7 +14,7 @@ export default function Layout() {
           headerTitleAlign: "center",
         }}
       />
-    
+      
       <Drawer.Screen
         name="about"
         options={{
@@ -36,8 +36,6 @@ export default function Layout() {
           headerTitleAlign: "center",
         }}
       />
-
- 
 
       <StatusBar style="light" />
     </Drawer>
