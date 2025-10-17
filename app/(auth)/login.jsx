@@ -10,6 +10,10 @@ import Spacer from '../../components/Spacer';
 
 
 const Login = () => {
+
+    const handleSubmit = () => {
+        console.log('loging form submitted')
+    }
   return (
    <ThemedView style={styles.container}>
 
@@ -18,7 +22,9 @@ const Login = () => {
         Login to your account
     </ThemedText>
 
-    <Pressable style={({pressed}) => [styles.btn, pressed && styles.pressed ]}>
+    <Pressable 
+        onPress={handleSubmit}
+        style={({pressed}) => [styles.btn, pressed && styles.pressed ]}>
         <Text style={{color: '#f2f2f2' }}>Login</Text>
 
     </Pressable>

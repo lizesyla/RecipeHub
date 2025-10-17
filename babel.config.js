@@ -4,7 +4,7 @@ module.exports = function (api) {
         return {
           presets: ['babel-preset-expo'],
           plugins: [
-            // Kjo është e domosdoshme për Expo Router
+            
             require.resolve('expo-router/babel'),
           ],
         };
