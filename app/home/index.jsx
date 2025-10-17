@@ -22,7 +22,7 @@ export default function HomeScreen() {
       description: "A simple and delicious homemade cake.",
       time: "30min",
       rating: 4,
-      category: "Snack",
+      category: "Dessert",
       image: require("../assets/cake.jpg"),
     },
     {
