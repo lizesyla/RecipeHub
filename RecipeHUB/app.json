@@ -1,14 +1,12 @@
 {
   "expo": {
-    "scheme": "app-scheme",
-    "name": "RecipeHub",
-    "slug": "RecipeHub",
+    "name": "RecipeHUB",
+    "slug": "RecipeHUB",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "scheme": "app-scheme",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",

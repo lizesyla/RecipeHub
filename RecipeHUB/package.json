@@ -1,7 +1,7 @@
 {
   "name": "recipehub",
   "version": "1.0.0",
-  "main": "expo-router/entry",
+  "main": "index.js",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -9,9 +9,9 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@react-native-masked-view/masked-view": "0.3.2",
+    "@expo/vector-icons": "^15.0.2",
     "@react-navigation/drawer": "^7.5.10",
-    "expo": "~54.0.12",
+    "expo": "~54.0.13",
     "expo-constants": "~18.0.9",
     "expo-linking": "~8.0.8",
     "expo-router": "~6.0.12",
