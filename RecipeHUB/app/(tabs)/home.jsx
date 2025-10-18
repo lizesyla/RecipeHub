@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 export default function HomeScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
-      {/* StatusBar për iOS dhe Android */}
+      
       <StatusBar
         barStyle="light-content"
         backgroundColor={Platform.OS === "android" ? "#4CAF50" : "transparent"}
@@ -15,10 +15,10 @@ export default function HomeScreen() {
         style={[styles.container, { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }]}
         contentContainerStyle={{ padding: 20 }}
       >
-        {/* Header */}
+       
         <Text style={styles.header}>Welcome to RecipeHub!</Text>
 
-        {/* Example Cards */}
+        
         <Text style={styles.sectionTitle}>Popular Recipes</Text>
 
         <View style={styles.card}>
@@ -36,7 +36,6 @@ export default function HomeScreen() {
           <Text style={styles.cardText}>Chocolate Cake</Text>
         </View>
 
-        {/* Add more sections if needed */}
         <Text style={styles.sectionTitle}>New Recipes</Text>
         <View style={styles.card}>
           <Ionicons name="restaurant-outline" size={28} color="#fff" />
