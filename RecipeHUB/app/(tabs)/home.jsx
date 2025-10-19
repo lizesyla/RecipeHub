@@ -1,24 +1,30 @@
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, StatusBar, Platform } from "react-native";
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, StatusBar, Platform, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 export default function HomeScreen() {
+  const router = useRouter();
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
-      
       <StatusBar
         barStyle="light-content"
         backgroundColor={Platform.OS === "android" ? "#4CAF50" : "transparent"}
         translucent={Platform.OS === "android"}
       />
 
+      
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <Ionicons name="arrow-back-circle" size={50} color="#4CAF50" />
+      </TouchableOpacity>
+
       <ScrollView
         style={[styles.container, { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }]}
         contentContainerStyle={{ padding: 20 }}
+        showsVerticalScrollIndicator={false}
       >
-       
         <Text style={styles.header}>Welcome to RecipeHub!</Text>
 
-        
         <Text style={styles.sectionTitle}>Popular Recipes</Text>
 
         <View style={styles.card}>
@@ -37,10 +43,12 @@ export default function HomeScreen() {
         </View>
 
         <Text style={styles.sectionTitle}>New Recipes</Text>
+
         <View style={styles.card}>
           <Ionicons name="restaurant-outline" size={28} color="#fff" />
           <Text style={styles.cardText}>Avocado Toast</Text>
         </View>
+
         <View style={styles.card}>
           <Ionicons name="restaurant-outline" size={28} color="#fff" />
           <Text style={styles.cardText}>Beef Tacos</Text>
@@ -55,12 +63,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#111",
   },
+  backButton: {
+    position: "absolute",
+    top: 40,
+    left: 20,
+    zIndex: 10,
+  },
   header: {
     fontSize: 26,
     fontWeight: "bold",
     color: "#4CAF50",
     marginBottom: 20,
     textAlign: "center",
+    marginTop: 60, 
   },
   sectionTitle: {
     fontSize: 20,
