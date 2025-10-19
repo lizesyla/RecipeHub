@@ -47,7 +47,7 @@ export default function AboutUs() {
 
         <TouchableOpacity
           style={styles.contactLink}
-          onPress={() => router.push("/tabs/profile/contact")}
+          onPress={() => router.push("/(tabs)/profile/contact")}
           activeOpacity={0.7} 
         >
           <Text style={styles.linkText}>Contact Us</Text>
