@@ -1,84 +1,124 @@
-import { View, Text, StyleSheet, StatusBar, Platform, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Animated } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useRef, useEffect } from "react";
+import { useRouter } from "expo-router";
 
-export default function ContactScreen() {
+export default function Contact() {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const router = useRouter();
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
-      <View style={styles.container}>
-        <Text style={styles.infoText}>
-          Ky është Contact Screen! Këtu mund të vendosni informacionin për kontakt.
-        </Text>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+      >
+        <Ionicons name="arrow-back-circle" size={50} color="#4CAF50" />
+      </TouchableOpacity>
 
-        <View style={styles.contactBox}>
-          <Ionicons name="call" size={24} color="#4CAF50" />
-          <Text style={styles.contactText}>+383 44 123 456</Text>
-        </View>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Animated.View style={{ opacity: fadeAnim, alignItems: "center", width: '100%' }}>
+          <Image
+            source={require("../../../assets/logo.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
 
-        <View style={styles.contactBox}>
-          <Ionicons name="mail" size={24} color="#4CAF50" />
-          <Text style={styles.contactText}>contact@app.com</Text>
-        </View>
+          <Text style={styles.title}>Contact Us</Text>
+          <Text style={styles.subtitle}>
+            Na kontaktoni për çdo pyetje apo sugjerim! 🌿
+          </Text>
 
-        <TouchableOpacity style={styles.button}>
-          <Ionicons name="chatbox-ellipses-outline" size={20} color="#fff" />
-          <Text style={styles.buttonText}>Send Message</Text>
-        </TouchableOpacity>
-      </View>
+          <View style={styles.contactBox}>
+            <Ionicons name="call" size={24} color="#4CAF50" />
+            <Text style={styles.contactText}>+383 44 123 456</Text>
+          </View>
+
+          <View style={styles.contactBox}>
+            <Ionicons name="mail" size={24} color="#4CAF50" />
+            <Text style={styles.contactText}>contact@app.com</Text>
+          </View>
+
+          <View style={styles.contactBox}>
+            <Ionicons name="location" size={24} color="#4CAF50" />
+            <Text style={styles.contactText}>Prishtina, Kosovo</Text>
+          </View>
+
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Send Message</Text>
+            <Ionicons name="chatbox-ellipses-outline" size={20} color="#fff" style={{ marginLeft: 10 }} />
+          </TouchableOpacity>
+        </Animated.View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerContainer: {
-    padding: 20,
-    backgroundColor: "#222",
-    alignItems: "center",
-  },
-  headerText: {
-    color: "#4CAF50",
-    fontSize: 24,
-    fontWeight: "bold",
-  },
   container: {
-    flex: 1,
-    padding: 20,
     alignItems: "center",
+    padding: 20,
   },
-  infoText: {
-    color: "#fff",
-    fontSize: 16,
-    textAlign: "center",
+  backButton: {
+    position: "absolute",
+    top: 40,
+    left: 20,
+    zIndex: 10,
+  },
+  logo: {
+    width: 120,
+    height: 120,
     marginBottom: 20,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#fff",
+    marginBottom: 8,
+  },
+  subtitle: {
+    color: "#aaa",
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: "center",
   },
   contactBox: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#222",
-    padding: 12,
+    padding: 16,
     borderRadius: 10,
-    marginVertical: 6,
-    width: "100%",
+    marginVertical: 8,
+    width: "95%",
   },
   contactText: {
     color: "#fff",
     fontSize: 16,
     marginLeft: 12,
+    flexShrink: 1,
   },
   button: {
     flexDirection: "row",
     backgroundColor: "#4CAF50",
     padding: 14,
     borderRadius: 10,
-    justifyContent: "center",
+    justifyContent: "flex-start",
     alignItems: "center",
     marginTop: 20,
-    width: "100%",
+    width: "95%",
   },
   buttonText: {
     color: "#fff",
     fontSize: 16,
-    marginLeft: 8,
     fontWeight: "bold",
   },
 });
