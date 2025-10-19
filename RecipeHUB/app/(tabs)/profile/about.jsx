@@ -10,24 +10,30 @@ export default function AboutUs() {
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
-      duration: 1000,
+      duration: 800,
       useNativeDriver: true,
     }).start();
   }, []);
 
   return (
     <View style={styles.container}>
-      <Animated.View style={{ opacity: fadeAnim, alignItems: "center" }}>
-    <Image
-      source={require("../../../assets/logo.png")}
-      style={styles.logo}
-      resizeMode="contain"
-    />
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+      >
+        <Ionicons name="arrow-back-circle" size={50} color="#4CAF50" />
+      </TouchableOpacity>
 
+      <Animated.View style={{ alignItems: "center", flex: 1, justifyContent: "center" }}>
+        <Image
+          source={require("../../../assets/logo.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
 
         <Text style={styles.title}>About Us</Text>
 
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <Text style={styles.text}>
             Welcome to our app! 🌿{"\n\n"}
             We’re a passionate team dedicated to creating simple, elegant, and
@@ -40,10 +46,11 @@ export default function AboutUs() {
         </ScrollView>
 
         <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
+          style={styles.contactLink}
+          onPress={() => router.push("/tabs/profile/contact")}
+          activeOpacity={0.7} 
         >
-          <Ionicons name="arrow-back-circle" size={65} color="#4CAF50" />
+          <Text style={styles.linkText}>Contact Us</Text>
         </TouchableOpacity>
       </Animated.View>
     </View>
@@ -54,9 +61,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#111",
-    alignItems: "center",
-    justifyContent: "center",
     padding: 20,
+  },
+  backButton: {
+    position: "absolute",
+    top: 40,
+    left: 20,
+    zIndex: 10,
   },
   logo: {
     width: 130,
@@ -71,8 +82,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     alignItems: "center",
-    paddingVertical: 10,
     paddingHorizontal: 5,
+    paddingBottom: 100, 
   },
   text: {
     color: "#ccc",
@@ -80,7 +91,19 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     textAlign: "center",
   },
-  backButton: {
-    marginTop: 35,
+  contactLink: {
+    position: "absolute",
+    bottom: 40,
+    alignSelf: "center",
+    backgroundColor: "#1a1a1a",
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 10,
+  },
+  linkText: {
+    color: "#4CAF50",
+    fontSize: 18,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
