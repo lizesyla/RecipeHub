@@ -1,10 +1,21 @@
+import React, { useEffect } from "react";
 import { View, Text, TextInput, StyleSheet, ScrollView, SafeAreaView, StatusBar, Platform } from "react-native";
+import * as Font from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
 
+
+
 export default function SearchScreen() {
+  
+  useEffect(() => {
+    Font.loadAsync({
+      ...Ionicons.font,
+    });
+  }, []);
+  
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
-      {/* StatusBar për iOS dhe Android */}
       <StatusBar
         barStyle="light-content"
         backgroundColor={Platform.OS === "android" ? "#4CAF50" : "transparent"}
@@ -15,18 +26,18 @@ export default function SearchScreen() {
         style={[styles.container, { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }]}
         contentContainerStyle={{ padding: 20 }}
       >
-        {/* Header */}
         <Text style={styles.header}>Search Recipes</Text>
 
-        {/* Search Input */}
         <Text style={styles.label}>Search</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Type recipe name or ingredient"
-          placeholderTextColor="#aaa"
-        />
+        <View style={styles.searchBox}>
+          <Ionicons name="search" size={22} color="#4CAF50" style={styles.icon} />
+          <TextInput
+            style={styles.inputBox}
+            placeholder="Type recipe name or ingredient"
+            placeholderTextColor="#aaa"
+          />
+        </View>
 
-        {/* Example results */}
         <Text style={[styles.label, { marginTop: 30 }]}>Results:</Text>
         <View style={styles.resultItem}>
           <Ionicons name="restaurant-outline" size={20} color="#fff" />
@@ -46,10 +57,7 @@ export default function SearchScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#111",
-  },
+  container: { flex: 1, backgroundColor: "#111" },
   header: {
     fontSize: 26,
     fontWeight: "bold",
@@ -63,11 +71,21 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     marginTop: 12,
   },
-  input: {
+  searchBox: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#222",
-    color: "#fff",
-    padding: 12,
     borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 10,
+  },
+  icon: {
+    marginRight: 10,
+  },
+  inputBox: {
+    flex: 1,
+    color: "#fff",
     fontSize: 16,
   },
   resultItem: {
