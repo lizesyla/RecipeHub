@@ -36,6 +36,15 @@ export default function Login() {
           <Text style={styles.linkText}> Sign Up</Text>
         </TouchableOpacity>
       </View>
+      
+
+      {/* about us */}
+       <TouchableOpacity
+        style={styles.aboutUsButton}
+        onPress={() => router.push("./profile/about")}
+      >
+        <Text style={styles.aboutUsText}>About Us</Text>
+      </TouchableOpacity>
 
     </View>
   );
@@ -72,6 +81,15 @@ const styles = StyleSheet.create({
   signUpView: {
     flexDirection: "row",
     marginTop: 20,
+  },
+    aboutUsButton: {
+    position: "absolute",
+    bottom: 40,
+  },
+  aboutUsText: {
+    color: "#4CAF50",
+    fontSize: 16,
+    textAlign: "center",
   }
 });
 

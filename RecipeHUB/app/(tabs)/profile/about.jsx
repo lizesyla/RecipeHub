@@ -1,70 +1,60 @@
-import { View, Text, StyleSheet, StatusBar, Platform, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
-export default function AboutScreen() {
+export default function AboutUs() {
+  const router = useRouter();
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
-      <View style={styles.container}>
-        <TouchableOpacity style={styles.button}>
-          <Ionicons name="information-circle-outline" size={20} color="#fff" />
-          <Text style={styles.buttonText}>More Info</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+    <View style={styles.container}>
+      <Text style={styles.title}>About Us</Text>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.text}>
+          Welcome to our app! 🌿{"\n\n"}
+          Our mission is to provide a simple and elegant mobile experience that helps users
+          stay connected and productive.{"\n\n"}
+          We focus on delivering intuitive design, smooth navigation, and a clean interface
+          - so you can focus on what matters most.{"\n\n"}
+          Built using React Native and Expo.
+        </Text>
+      </ScrollView>
+
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+      >
+        <Ionicons name="arrow-back-circle" size={60} color="#4CAF50" />
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  headerContainer: {
-    padding: 20,
-    backgroundColor: "#222",
-    alignItems: "center",
-  },
-  headerText: {
-    color: "#4CAF50",
-    fontSize: 24,
-    fontWeight: "bold",
-  },
   container: {
     flex: 1,
-    padding: 20,
+    backgroundColor: "#111",
     alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
   },
-  infoText: {
+  title: {
+    fontSize: 26,
+    fontWeight: "bold",
     color: "#fff",
-    fontSize: 16,
-    textAlign: "center",
     marginBottom: 20,
   },
-  contactBox: {
-    flexDirection: "row",
+  scrollContent: {
     alignItems: "center",
-    backgroundColor: "#222",
-    padding: 12,
-    borderRadius: 10,
-    marginVertical: 6,
-    width: "100%",
+    paddingVertical: 10,
   },
-  contactText: {
-    color: "#fff",
+  text: {
+    color: "#ccc",
     fontSize: 16,
-    marginLeft: 12,
+    lineHeight: 24,
+    textAlign: "center",
   },
-  button: {
-    flexDirection: "row",
-    backgroundColor: "#4CAF50",
-    padding: 14,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 20,
-    width: "100%",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    marginLeft: 8,
-    fontWeight: "bold",
+  backButton: {
+    marginTop: 30,
   },
 });
