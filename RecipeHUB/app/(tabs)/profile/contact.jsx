@@ -2,9 +2,11 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Animated }
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRef, useEffect } from "react";
+import { useRouter } from "expo-router";
 
 export default function Contact() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const router = useRouter();
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -16,6 +18,13 @@ export default function Contact() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+      >
+        <Ionicons name="arrow-back-circle" size={50} color="#4CAF50" />
+      </TouchableOpacity>
+
       <ScrollView contentContainerStyle={styles.container}>
         <Animated.View style={{ opacity: fadeAnim, alignItems: "center", width: '100%' }}>
           <Image
@@ -59,6 +68,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
   },
+  backButton: {
+    position: "absolute",
+    top: 40,
+    left: 20,
+    zIndex: 10,
+  },
   logo: {
     width: 120,
     height: 120,
@@ -96,7 +111,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#4CAF50",
     padding: 14,
     borderRadius: 10,
-    justifyContent: "center",
+    justifyContent: "flex-start",
     alignItems: "center",
     marginTop: 20,
     width: "95%",
