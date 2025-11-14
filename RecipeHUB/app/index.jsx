@@ -4,6 +4,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { auth, googleProvider } from "../firebase";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { sendPasswordResetEmail } from "firebase/auth";
+
 
 export default function Login() {
   const router = useRouter();
@@ -66,6 +68,25 @@ export default function Login() {
       }
     }
   };
+  const handleForgotPassword = async () => {
+    if (email.trim() === "") {
+      setError("Please enter your email to reset password");
+      return;
+    }
+  
+    setLoading(true);
+    setError("");
+  
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setError("Password reset email has been sent!");
+    } catch (error) {
+      setError("Failed to send reset email");
+    }
+  
+    setLoading(false);
+  };
+  
 
   return (
     <View style={styles.container}>
@@ -95,6 +116,10 @@ export default function Login() {
           setError("");
         }}
       />
+      <TouchableOpacity onPress={handleForgotPassword}>
+           <Text style={styles.forgotText}>Forgot Password?</Text>
+       </TouchableOpacity>
+
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       <TouchableOpacity 
@@ -131,10 +156,6 @@ export default function Login() {
           <Text style={styles.linkText}> Sign Up</Text>
         </TouchableOpacity>
       </View>
-      
-
-     
-
     </View>
   );
 }
@@ -171,15 +192,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginTop: 20,
   },
-    aboutUsButton: {
-    position: "absolute",
-    bottom: 40,
-  },
-  aboutUsText: {
+  forgotText: {
     color: "#4CAF50",
-    fontSize: 16,
-    textAlign: "center",
-  },
+    fontSize: 14,
+    marginTop: 5,
+    textAlign: "right",
+    width: "100%",
+  },  
   googleButton: {
     marginTop: 20,
     backgroundColor: "#222",
