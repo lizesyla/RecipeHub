@@ -20,6 +20,31 @@ export default function SearchScreen() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const handleSearch = async () => {
+    if (searchText.trim().length < 2) {
+      setResults([]);
+      return;
+    }
+  
+    setLoading(true);
+  
+    try {
+      const q = query(
+        collection(db, "recipes"),
+        where("keywords", "array-contains", searchText.toLowerCase())
+      );
+  
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  
+      setResults(data);
+    } catch (error) {
+      console.log("Search error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
       <StatusBar
