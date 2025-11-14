@@ -71,6 +71,8 @@ export default function SearchScreen() {
             style={styles.inputBox}
             placeholder="Type recipe name or ingredient"
             placeholderTextColor="#aaa"
+            value={searchText}
+            onChangeText={setSearchText}
           />
         </View>
 
