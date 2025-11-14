@@ -171,3 +171,19 @@ return (
     </SafeAreaView>
   );
 }
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#111" },
+  header: { fontSize: 28, fontWeight: "bold", color: "#4CAF50", marginBottom: 20, textAlign: "center" },
+  error: { color: "red", textAlign: "center", marginTop: 20 },
+  noRecipes: { color: "#aaa", textAlign: "center", marginTop: 20 },
+  postContainer: { backgroundColor: "#1a1a1a", marginBottom: 25, borderRadius: 12, paddingBottom: 15 },
+  userRow: { flexDirection: "row", alignItems: "center", padding: 12 },
+  username: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+  date: { color: "#aaa", fontSize: 12 },
+  recipeImage: { width: "100%", height: 220, borderRadius: 12, marginTop: 10 },
+  recipeTitle: { color: "#fff", fontSize: 20, fontWeight: "bold", marginTop: 12, paddingHorizontal: 12 },
+  tagsRow: { flexDirection: "row", flexWrap: "wrap", marginTop: 8, paddingHorizontal: 12 },
+  tag: { backgroundColor: "#333", borderRadius: 10, paddingVertical: 4, paddingHorizontal: 10, marginRight: 6, marginBottom: 6 },
+  tagText: { color: "#4CAF50", fontSize: 12 },
+  actionRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 14, paddingHorizontal: 12 },
+});
