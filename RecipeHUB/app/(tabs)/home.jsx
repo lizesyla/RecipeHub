@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -34,25 +35,33 @@ export default function HomeScreen() {
 
  
   const fetchRecipes = async () => {
-    if (!user) {
-      setError("You must be logged in to view recipes.");
-      setLoading(false);
-      return;
-    }
     try {
       setLoading(true);
-      const recipesRef = collection(db, "users", user.uid, "recipes");
+      const recipesRef = collection(db, "allRecipes");
       const snapshot = await getDocs(recipesRef);
+
       let items = [];
-      snapshot.forEach((doc) => items.push({ id: doc.id, ...doc.data() }));
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        items.push({
+          id: doc.id,
+          ...data,
+          imageURL:
+            data.imageURL && data.imageURL.trim() !== ""
+              ? data.imageURL
+              : "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png",
+        });
+      });
+
       setRecipes(items);
-    } catch {
+    } catch (err) {
       setError("Error loading recipes.");
     } finally {
       setLoading(false);
     }
   };
 
+ 
   const loadFavorites = async () => {
     if (!user) return;
     const favRef = collection(db, "users", user.uid, "favorites");
@@ -62,9 +71,12 @@ export default function HomeScreen() {
     setFavorites(favs);
   };
 
+  
   const toggleFavorite = async (item) => {
     if (!user) return;
+
     const favDoc = doc(db, "users", user.uid, "favorites", item.id);
+
     if (favorites.includes(item.id)) {
       await deleteDoc(favDoc);
       setFavorites(favorites.filter((f) => f !== item.id));
@@ -74,8 +86,10 @@ export default function HomeScreen() {
     }
   };
 
+
   const deleteRecipe = async (id) => {
     if (!user) return;
+
     Alert.alert(
       "Delete Recipe",
       "Are you sure you want to delete this recipe?",
@@ -96,10 +110,16 @@ export default function HomeScreen() {
       ]
     );
   };
+
+  
   const RecipeCard = ({ item, isFavorite, onToggleFavorite, onDelete }) => {
     const id = item.id;
     const title = item.title;
-    const imageURL = item.imageURL || "https://www.example.com/default-image.jpg";
+    const imageURL =
+      item.imageURL && item.imageURL.trim() !== ""
+        ? item.imageURL
+        : "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png";
+
     const username = item.username || user.email;
     const tags = item.tags || [];
 
@@ -109,13 +129,18 @@ export default function HomeScreen() {
           <Ionicons name="person-circle-outline" size={38} color="#4CAF50" />
           <View style={{ marginLeft: 8 }}>
             <Text style={styles.username}>{username}</Text>
-            {item.createdAt && <Text style={styles.date}>{item.createdAt?.split("T")[0]}</Text>}
+            {item.createdAt && (
+              <Text style={styles.date}>{item.createdAt?.split("T")[0]}</Text>
+            )}
           </View>
         </View>
+
         <Image source={{ uri: imageURL }} style={styles.recipeImage} />
+
         <TouchableOpacity onPress={() => router.push(`/recipe/${id}`)}>
           <Text style={styles.recipeTitle}>{title}</Text>
         </TouchableOpacity>
+
         {tags.length > 0 && (
           <View style={styles.tagsRow}>
             {tags.map((tag, i) => (
@@ -125,6 +150,7 @@ export default function HomeScreen() {
             ))}
           </View>
         )}
+
         <View style={styles.actionRow}>
           <TouchableOpacity onPress={() => onToggleFavorite(item)}>
             <Ionicons
@@ -133,6 +159,7 @@ export default function HomeScreen() {
               color={isFavorite ? "red" : "#fff"}
             />
           </TouchableOpacity>
+
           <TouchableOpacity onPress={() => onDelete(id)}>
             <Ionicons name="trash-outline" size={28} color="red" />
           </TouchableOpacity>
@@ -140,24 +167,36 @@ export default function HomeScreen() {
       </View>
     );
   };
-return (
+
+  
+  return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
       <StatusBar
         barStyle="light-content"
         backgroundColor={Platform.OS === "android" ? "#4CAF50" : "transparent"}
         translucent={Platform.OS === "android"}
       />
+
       <ScrollView
-        style={[styles.container, { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }]}
+        style={[
+          styles.container,
+          { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 },
+        ]}
         contentContainerStyle={{ padding: 20 }}
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.header}>Feed</Text>
-        {loading && <ActivityIndicator size="large" color="#4CAF50" style={{ marginTop: 20 }} />}
-        {error !== "" && <Text style={styles.error}>{error}</Text>}
-        {!loading && recipes.length === 0 && <Text style={styles.noRecipes}>No recipes yet.</Text>}
 
-        {/* Firebase Recipes */}
+        {loading && (
+          <ActivityIndicator size="large" color="#4CAF50" style={{ marginTop: 20 }} />
+        )}
+
+        {error !== "" && <Text style={styles.error}>{error}</Text>}
+
+        {!loading && recipes.length === 0 && (
+          <Text style={styles.noRecipes}>No recipes yet.</Text>
+        )}
+
         {recipes.map((item) => (
           <RecipeCard
             key={item.id}
@@ -171,6 +210,7 @@ return (
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#111" },
   header: { fontSize: 28, fontWeight: "bold", color: "#4CAF50", marginBottom: 20, textAlign: "center" },

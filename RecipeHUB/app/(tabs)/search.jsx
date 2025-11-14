@@ -2,6 +2,9 @@ import React, { useEffect } from "react";
 import { View, Text, TextInput, StyleSheet, ScrollView, SafeAreaView, StatusBar, Platform } from "react-native";
 import * as Font from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "../../firebase"
 
 
 
@@ -12,6 +15,39 @@ export default function SearchScreen() {
       ...Ionicons.font,
     });
   }, []);
+
+  const [searchText, setSearchText] = useState("");
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const handleSearch = async () => {
+    if (searchText.trim().length < 2) {
+      setResults([]);
+      return;
+    }
+  
+    setLoading(true);
+  
+    try {
+      const q = query(
+        collection(db, "recipes"),
+        where("keywords", "array-contains", searchText.toLowerCase())
+      );
+  
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  
+      setResults(data);
+    } catch (error) {
+      console.log("Search error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    handleSearch();
+  }, [searchText]);
   
 
   return (
@@ -35,22 +71,27 @@ export default function SearchScreen() {
             style={styles.inputBox}
             placeholder="Type recipe name or ingredient"
             placeholderTextColor="#aaa"
+            value={searchText}
+            onChangeText={setSearchText}
           />
         </View>
 
         <Text style={[styles.label, { marginTop: 30 }]}>Results:</Text>
-        <View style={styles.resultItem}>
-          <Ionicons name="restaurant-outline" size={20} color="#fff" />
-          <Text style={styles.resultText}>Spaghetti Carbonara</Text>
-        </View>
-        <View style={styles.resultItem}>
-          <Ionicons name="restaurant-outline" size={20} color="#fff" />
-          <Text style={styles.resultText}>Chicken Curry</Text>
-        </View>
-        <View style={styles.resultItem}>
-          <Ionicons name="restaurant-outline" size={20} color="#fff" />
-          <Text style={styles.resultText}>Chocolate Cake</Text>
-        </View>
+        {loading && (
+  <Text style={{ color: "#aaa", marginTop: 10 }}>Searching...</Text>
+)}
+
+{!loading && results.length === 0 && searchText.length > 1 && (
+  <Text style={{ color: "#aaa", marginTop: 10 }}>No results found</Text>
+)}
+
+{results.map(item => (
+  <View key={item.id} style={styles.resultItem}>
+    <Ionicons name="restaurant-outline" size={20} color="#fff" />
+    <Text style={styles.resultText}>{item.title}</Text>
+  </View>
+))}
+
       </ScrollView>
     </SafeAreaView>
   );
