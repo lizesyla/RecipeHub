@@ -1,52 +1,92 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Platform } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { auth, googleProvider } from "../firebase";
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, signOut } from "firebase/auth";
+
 export default function Register() {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
 
-  const handleRegister = async () => {
-    if (!fullName || !email || !password || !confirmPassword) {
-      Alert.alert("Error", "Please fill in all fields");
-      return;
+  const validateInputs = () => {
+    if (fullName.trim() === "" || email.trim() === "" || password.trim() === "" || confirmPassword.trim() === "") {
+      setError("All fields are required");
+      return false;
     }
+
+    const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Email is not valid");
+      return false;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return false;
+    }
+
     if (password !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match");
-      return;
+      setError("Passwords do not match");
+      return false;
     }
+
+    setError("");
+    return true;
+  };
+
+  const handleSignUp = async () => {
+    if (!validateInputs()) return;
+    
+    setLoading(true);
+    setError("");
+    
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: fullName });
-   
       await signOut(auth);
-      Alert.alert("Success", "Account created successfully! Please log in.");
-      setTimeout(() => {
-        router.replace("/");
-      }, 100);
+      setLoading(false);
+      setModalVisible(true);
     } catch (error) {
-      Alert.alert("Registration Error", error.message);
+      setLoading(false);
+      if (error.code === "auth/email-already-in-use") {
+        setError("Email already exists");
+      } else {
+        setError(error.message);
+      }
     }
   };
+
+  const handleModalClose = () => {
+    setModalVisible(false);
+    router.replace("/");
+  };
   const handleGoogleRegister = async () => {
-  
     if (Platform.OS !== "web") {
-      Alert.alert(
-        "Not Available", 
-        "Google Sign-Up with popup is only available on web. Please use email/password registration on mobile devices."
-      );
+      setError("Google Sign-Up is only available on web");
       return;
     }
+    
+    setLoading(true);
+    setError("");
+    
     try {
       await signInWithPopup(auth, googleProvider);
-    
+      setLoading(false);
+      router.replace("/(tabs)/home");
     } catch (error) {
-      Alert.alert("Google Sign Up Error", error.message);
+      setLoading(false);
+      if (error.code === "auth/email-already-in-use") {
+        setError("Email already exists");
+      } else {
+        setError(error.message);
+      }
     }
   };
 
@@ -59,15 +99,23 @@ export default function Register() {
         placeholder="Full Name"
         placeholderTextColor="#aaa"
         value={fullName}
-        onChangeText={setFullName}
+        onChangeText={(text) => {
+          setFullName(text);
+          setError("");
+        }}
       />
       <TextInput
         style={styles.input}
         placeholder="Email"
         placeholderTextColor="#aaa"
         keyboardType="email-address"
+        autoCapitalize="none"
+        autoCorrect={false}
         value={email}
-        onChangeText={setEmail}
+        onChangeText={(text) => {
+          setEmail(text);
+          setError("");
+        }}
       />
       <TextInput
         style={styles.input}
@@ -75,7 +123,10 @@ export default function Register() {
         secureTextEntry
         placeholderTextColor="#aaa"
         value={password}
-        onChangeText={setPassword}
+        onChangeText={(text) => {
+          setPassword(text);
+          setError("");
+        }}
       />
       <TextInput
         style={styles.input}
@@ -83,28 +134,61 @@ export default function Register() {
         secureTextEntry
         placeholderTextColor="#aaa"
         value={confirmPassword}
-        onChangeText={setConfirmPassword}
+        onChangeText={(text) => {
+          setConfirmPassword(text);
+          setError("");
+        }}
       />
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       <TouchableOpacity
-        style={styles.arrowButton} 
-        onPress={handleRegister}
+        style={styles.arrowButton}
+        onPress={handleSignUp}
+        disabled={loading}
       >
-        <Ionicons name="arrow-forward-circle" size={60} color="#4CAF50" />
+        {loading ? (
+          <ActivityIndicator size="large" color="#4CAF50" />
+        ) : (
+          <Ionicons name="arrow-forward-circle" size={60} color="#4CAF50" />
+        )}
       </TouchableOpacity>
-      <TouchableOpacity style={styles.googleButton} onPress={handleGoogleRegister}>
-        <Text style={styles.googleText}>Sign up with Google</Text>
+
+      <TouchableOpacity
+        style={styles.googleButton}
+        onPress={handleGoogleRegister}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator size="small" color="#4CAF50" />
+        ) : (
+          <Text style={styles.googleText}>Sign up with Google</Text>
+        )}
       </TouchableOpacity>
 
       <View style={styles.loginView}>
         <Text style={styles.accountText}>Already have an account?</Text>
-        <TouchableOpacity
-          onPress={() => router.push("/")}
-        >
+        <TouchableOpacity onPress={() => router.push("/")}>
           <Text style={styles.linkText}> Log In</Text>
         </TouchableOpacity>
       </View>
 
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={handleModalClose}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Ionicons name="checkmark-circle" size={60} color="#4CAF50" />
+            <Text style={styles.modalTitle}>Success!</Text>
+            <Text style={styles.modalText}>Account created successfully!</Text>
+            <TouchableOpacity style={styles.modalButton} onPress={handleModalClose}>
+              <Text style={styles.modalButtonText}>Go to Login</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -147,10 +231,80 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
   },
-  googleButton: { marginTop: 20, backgroundColor: "#4285F4", padding: 10, borderRadius: 8 },
-  googleText: { color: "#fff", fontWeight: "bold", textAlign: "center" },
-  linkText: { color: "#4CAF50", fontSize: 16, textAlign: "center" },
-  loginView: { flexDirection: "row", marginTop: 20 },
-  accountText: { color: "#FFFFFF", fontSize: 16, textAlign: "center" }
+  googleButton: {
+    marginTop: 20,
+    backgroundColor: "#222",
+    padding: 12,
+    borderRadius: 10,
+    width: "80%",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#4CAF50",
+  },
+  googleText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  linkText: {
+    color: "#4CAF50",
+    fontSize: 16,
+    textAlign: "center",
+  },
+  loginView: {
+    flexDirection: "row",
+    marginTop: 20,
+  },
+  accountText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    textAlign: "center",
+  },
+  errorText: {
+    color: "#ff4444",
+    fontSize: 14,
+    marginTop: 5,
+    textAlign: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "#222",
+    borderRadius: 20,
+    padding: 30,
+    alignItems: "center",
+    width: "80%",
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#fff",
+    marginTop: 15,
+    marginBottom: 10,
+  },
+  modalText: {
+    fontSize: 16,
+    color: "#aaa",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  modalButton: {
+    backgroundColor: "#4CAF50",
+    padding: 12,
+    borderRadius: 10,
+    width: "100%",
+    alignItems: "center",
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
 });
 
