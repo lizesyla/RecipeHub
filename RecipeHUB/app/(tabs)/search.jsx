@@ -45,6 +45,11 @@ export default function SearchScreen() {
     }
   };
 
+  useEffect(() => {
+    handleSearch();
+  }, [searchText]);
+  
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
       <StatusBar
