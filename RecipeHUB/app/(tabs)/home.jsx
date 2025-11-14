@@ -96,3 +96,47 @@ export default function HomeScreen() {
       ]
     );
   };
+  const RecipeCard = ({ item, isFavorite, onToggleFavorite, onDelete }) => {
+    const id = item.id;
+    const title = item.title;
+    const imageURL = item.imageURL || "https://www.example.com/default-image.jpg";
+    const username = item.username || user.email;
+    const tags = item.tags || [];
+
+    return (
+      <View style={styles.postContainer}>
+        <View style={styles.userRow}>
+          <Ionicons name="person-circle-outline" size={38} color="#4CAF50" />
+          <View style={{ marginLeft: 8 }}>
+            <Text style={styles.username}>{username}</Text>
+            {item.createdAt && <Text style={styles.date}>{item.createdAt?.split("T")[0]}</Text>}
+          </View>
+        </View>
+        <Image source={{ uri: imageURL }} style={styles.recipeImage} />
+        <TouchableOpacity onPress={() => router.push(`/recipe/${id}`)}>
+          <Text style={styles.recipeTitle}>{title}</Text>
+        </TouchableOpacity>
+        {tags.length > 0 && (
+          <View style={styles.tagsRow}>
+            {tags.map((tag, i) => (
+              <View key={i} style={styles.tag}>
+                <Text style={styles.tagText}>#{tag}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+        <View style={styles.actionRow}>
+          <TouchableOpacity onPress={() => onToggleFavorite(item)}>
+            <Ionicons
+              name={isFavorite ? "heart" : "heart-outline"}
+              size={28}
+              color={isFavorite ? "red" : "#fff"}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => onDelete(id)}>
+            <Ionicons name="trash-outline" size={28} color="red" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
