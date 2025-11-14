@@ -183,3 +183,105 @@ export default function CreateRecipeScreen() {
     </SafeAreaView>
   );
 }
+
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#111",
+  },
+  header: {
+    fontSize: 26,
+    fontWeight: "bold",
+    color: "#4CAF50",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  label: {
+    color: "#fff",
+    fontSize: 16,
+    marginBottom: 6,
+    marginTop: 12,
+  },
+  input: {
+    backgroundColor: "#222",
+    color: "#fff",
+    padding: 12,
+    borderRadius: 10,
+    fontSize: 16,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  addButton: {
+    marginLeft: 10,
+    backgroundColor: "#4CAF50",
+    padding: 6,
+    borderRadius: 8,
+  },
+  ingredientItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    backgroundColor: "#1E1E1E",
+    padding: 12,
+    borderRadius: 10,
+    marginTop: 6,
+  },
+  ingredientText: {
+    color: "#fff",
+    fontSize: 16,
+  },
+  deleteText: {
+    color: "red",
+    fontWeight: "bold",
+  },
+  button: {
+    flexDirection: "row",
+    backgroundColor: "#4CAF50",
+    padding: 14,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 20,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 18,
+    marginLeft: 8,
+    fontWeight: "bold",
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20
+  },
+  modalBox: {
+    backgroundColor: "#222",
+    padding: 20,
+    borderRadius: 12,
+    width: "90%",
+    alignItems: "center"
+  },
+  modalText: {
+    color: "#fff",
+    fontSize: 18,
+    textAlign: "center",
+    marginBottom: 20
+  },
+  modalButton: {
+    backgroundColor: "#4CAF50",
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 8
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold"
+  }
+});
