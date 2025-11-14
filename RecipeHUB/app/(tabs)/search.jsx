@@ -77,18 +77,21 @@ export default function SearchScreen() {
         </View>
 
         <Text style={[styles.label, { marginTop: 30 }]}>Results:</Text>
-        <View style={styles.resultItem}>
-          <Ionicons name="restaurant-outline" size={20} color="#fff" />
-          <Text style={styles.resultText}>Spaghetti Carbonara</Text>
-        </View>
-        <View style={styles.resultItem}>
-          <Ionicons name="restaurant-outline" size={20} color="#fff" />
-          <Text style={styles.resultText}>Chicken Curry</Text>
-        </View>
-        <View style={styles.resultItem}>
-          <Ionicons name="restaurant-outline" size={20} color="#fff" />
-          <Text style={styles.resultText}>Chocolate Cake</Text>
-        </View>
+        {loading && (
+  <Text style={{ color: "#aaa", marginTop: 10 }}>Searching...</Text>
+)}
+
+{!loading && results.length === 0 && searchText.length > 1 && (
+  <Text style={{ color: "#aaa", marginTop: 10 }}>No results found</Text>
+)}
+
+{results.map(item => (
+  <View key={item.id} style={styles.resultItem}>
+    <Ionicons name="restaurant-outline" size={20} color="#fff" />
+    <Text style={styles.resultText}>{item.title}</Text>
+  </View>
+))}
+
       </ScrollView>
     </SafeAreaView>
   );
