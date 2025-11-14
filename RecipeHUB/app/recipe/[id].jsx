@@ -1,5 +1,3 @@
-//wNE APP E KRIJON RECIPE FOLDERIN TANI []ID.JSX
-
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -11,17 +9,18 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Image,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
 import { auth, db } from "../../firebase";
-import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, deleteDoc, setDoc } from "firebase/firestore";
 
 export default function RecipeDetailScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams(); // merr id nga dynamic route
+  const { id } = useLocalSearchParams();
   const user = auth.currentUser;
 
   const [recipe, setRecipe] = useState(null);
@@ -35,16 +34,14 @@ export default function RecipeDetailScreen() {
   }, []);
 
   const fetchRecipe = async () => {
-    if (!user) return;
-
     try {
       setLoading(true);
-      const recipeDoc = await getDoc(doc(db, "users", user.uid, "recipes", id));
+      const recipeDoc = await getDoc(doc(db, "AllRecipes", id));
       if (recipeDoc.exists()) {
         setRecipe(recipeDoc.data());
       }
     } catch (err) {
-      console.log("Error loading recipe:", err);
+      console.log("Error:", err);
     } finally {
       setLoading(false);
     }
@@ -52,7 +49,6 @@ export default function RecipeDetailScreen() {
 
   const loadFavorites = async () => {
     if (!user) return;
-
     const favDoc = await getDoc(doc(db, "users", user.uid, "favorites", id));
     if (favDoc.exists()) {
       setFavorites([id]);
@@ -73,11 +69,30 @@ export default function RecipeDetailScreen() {
         await setDoc(favDoc, recipe);
         setFavorites([id]);
       }
-    } catch (err) {
-      console.log("Error toggling favorite:", err);
     } finally {
       setFavLoading(false);
     }
+  };
+
+  const deleteRecipe = () => {
+    Alert.alert("Delete Recipe", "Are you sure?", [
+      { text: "Cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteDoc(doc(db, "AllRecipes", id));
+            await deleteDoc(doc(db, "users", recipe.userId, "recipes", id));
+            await deleteDoc(doc(db, "users", user.uid, "favorites", id));
+
+            router.replace("/home"); 
+          } catch (err) {
+            console.log("Error deleting:", err);
+          }
+        },
+      },
+    ]);
   };
 
   if (loading) {
@@ -96,6 +111,8 @@ export default function RecipeDetailScreen() {
     );
   }
 
+  const isOwner = recipe.userId === user?.uid;
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
       <StatusBar
@@ -104,26 +121,21 @@ export default function RecipeDetailScreen() {
         translucent={Platform.OS === "android"}
       />
 
-      {/* Back Button */}
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Ionicons name="arrow-back-circle" size={44} color="#4CAF50" />
       </TouchableOpacity>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 80 }}>
-        {/* Titulli */}
         <Text style={styles.title}>{recipe.title}</Text>
 
-        {/* Përdoruesi + data */}
         <Text style={styles.meta}>
-          By: {recipe.username || user.email} | {recipe.createdAt?.split("T")[0]}
+          By: {recipe.username} | {recipe.createdAt?.split("T")[0]}
         </Text>
 
-        {/* Foto */}
         {recipe.imageURL && (
           <Image source={{ uri: recipe.imageURL }} style={styles.image} />
         )}
 
-        {/* Lista e përbërësve */}
         <Text style={styles.sectionHeader}>Ingredients</Text>
         {recipe.ingredients?.map((item) => (
           <Text key={item.id} style={styles.ingredient}>
@@ -131,11 +143,10 @@ export default function RecipeDetailScreen() {
           </Text>
         ))}
 
-        {/* Udhëzimet */}
         <Text style={styles.sectionHeader}>Instructions</Text>
         <Text style={styles.instructions}>{recipe.instructions}</Text>
 
-        {/* Favorite button */}
+       
         <TouchableOpacity
           style={styles.favoriteButton}
           onPress={toggleFavorite}
@@ -150,6 +161,14 @@ export default function RecipeDetailScreen() {
             {favorites.includes(id) ? "Favorited" : "Add to Favorites"}
           </Text>
         </TouchableOpacity>
+
+       
+        {isOwner && (
+          <TouchableOpacity style={styles.deleteButton} onPress={deleteRecipe}>
+            <Ionicons name="trash-outline" size={26} color="white" />
+            <Text style={styles.deleteText}>Delete Recipe</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -161,6 +180,21 @@ const styles = StyleSheet.create({
     top: Platform.OS === "android" ? StatusBar.currentHeight + 10 : 20,
     left: 16,
     zIndex: 10,
+  },
+  deleteButton: {
+    flexDirection: "row",
+    backgroundColor: "red",
+    padding: 14,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 20,
+  },
+  deleteText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 8,
   },
   loadingContainer: {
     flex: 1,

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -17,7 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
 import { auth, db } from "../../firebase";
-import { collection, getDocs, deleteDoc, doc, setDoc } from "firebase/firestore";
+import { collection, getDocs, deleteDoc, doc, onSnapshot, query, orderBy, setDoc } from "firebase/firestore";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -29,64 +28,60 @@ export default function HomeScreen() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchRecipes();
+    const unsub = loadRecipesRealtime();
     loadFavorites();
+    return unsub; 
   }, []);
 
- 
-  const fetchRecipes = async () => {
-    try {
-      setLoading(true);
-      const recipesRef = collection(db, "allRecipes");
-      const snapshot = await getDocs(recipesRef);
+  
+  const loadRecipesRealtime = () => {
+    const ref = collection(db, "AllRecipes");
+    const q = query(ref, orderBy("createdAt", "desc"));
 
-      let items = [];
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        items.push({
-          id: doc.id,
-          ...data,
-          imageURL:
-            data.imageURL && data.imageURL.trim() !== ""
-              ? data.imageURL
-              : "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png",
-        });
-      });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setRecipes(items);
+        setLoading(false);
+      },
+      (err) => {
+        setError("Error loading recipes.");
+        setLoading(false);
+      }
+    );
 
-      setRecipes(items);
-    } catch (err) {
-      setError("Error loading recipes.");
-    } finally {
-      setLoading(false);
-    }
+    return unsubscribe;
   };
 
- 
+  
   const loadFavorites = async () => {
     if (!user) return;
     const favRef = collection(db, "users", user.uid, "favorites");
     const snap = await getDocs(favRef);
-    let favs = [];
-    snap.forEach((doc) => favs.push(doc.id));
+    const favs = snap.docs.map(doc => doc.id);
     setFavorites(favs);
   };
 
   
   const toggleFavorite = async (item) => {
     if (!user) return;
-
     const favDoc = doc(db, "users", user.uid, "favorites", item.id);
 
-    if (favorites.includes(item.id)) {
-      await deleteDoc(favDoc);
-      setFavorites(favorites.filter((f) => f !== item.id));
-    } else {
-      await setDoc(favDoc, item);
-      setFavorites([...favorites, item.id]);
-    }
+    setFavorites(prev => {
+      if (prev.includes(item.id)) {
+        
+        deleteDoc(favDoc).catch(err => console.log(err));
+        return prev.filter(f => f !== item.id);
+      } else {
+        
+        setDoc(favDoc, item).catch(err => console.log(err));
+        return [...prev, item.id];
+      }
+    });
   };
 
-
+ 
   const deleteRecipe = async (id) => {
     if (!user) return;
 
@@ -100,8 +95,8 @@ export default function HomeScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              await deleteDoc(doc(db, "users", user.uid, "recipes", id));
-              setRecipes(recipes.filter((item) => item.id !== id));
+              await deleteDoc(doc(db, "AllRecipes", id));
+              setRecipes(prev => prev.filter(item => item.id !== id));
             } catch {
               Alert.alert("Error", "Failed to delete recipe.");
             }
@@ -112,63 +107,55 @@ export default function HomeScreen() {
   };
 
   
-  const RecipeCard = ({ item, isFavorite, onToggleFavorite, onDelete }) => {
+  const RecipeCard = ({ item }) => {
     const id = item.id;
-    const title = item.title;
-    const imageURL =
-      item.imageURL && item.imageURL.trim() !== ""
-        ? item.imageURL
-        : "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png";
 
-    const username = item.username || user.email;
-    const tags = item.tags || [];
+    let formattedDate = "";
+    if (item.createdAt) {
+      if (typeof item.createdAt === "string") {
+        formattedDate = item.createdAt.split("T")[0];
+      } else if (item.createdAt.toDate) {
+        formattedDate = item.createdAt.toDate().toISOString().split("T")[0];
+      }
+    }
 
     return (
       <View style={styles.postContainer}>
         <View style={styles.userRow}>
           <Ionicons name="person-circle-outline" size={38} color="#4CAF50" />
           <View style={{ marginLeft: 8 }}>
-            <Text style={styles.username}>{username}</Text>
-            {item.createdAt && (
-              <Text style={styles.date}>{item.createdAt?.split("T")[0]}</Text>
+            <Text style={styles.username}>{item.ownerEmail}</Text>
+            {formattedDate !== "" && (
+              <Text style={styles.date}>{formattedDate}</Text>
             )}
           </View>
         </View>
 
-        <Image source={{ uri: imageURL }} style={styles.recipeImage} />
+        <Image source={{ uri: item.imageURL }} style={styles.recipeImage} />
 
         <TouchableOpacity onPress={() => router.push(`/recipe/${id}`)}>
-          <Text style={styles.recipeTitle}>{title}</Text>
+          <Text style={styles.recipeTitle}>{item.title}</Text>
         </TouchableOpacity>
 
-        {tags.length > 0 && (
-          <View style={styles.tagsRow}>
-            {tags.map((tag, i) => (
-              <View key={i} style={styles.tag}>
-                <Text style={styles.tagText}>#{tag}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-
         <View style={styles.actionRow}>
-          <TouchableOpacity onPress={() => onToggleFavorite(item)}>
+          <TouchableOpacity onPress={() => toggleFavorite(item)}>
             <Ionicons
-              name={isFavorite ? "heart" : "heart-outline"}
+              name={favorites.includes(item.id) ? "heart" : "heart-outline"}
               size={28}
-              color={isFavorite ? "red" : "#fff"}
+              color={favorites.includes(item.id) ? "red" : "#fff"}
             />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => onDelete(id)}>
-            <Ionicons name="trash-outline" size={28} color="red" />
-          </TouchableOpacity>
+          {item.ownerId === user?.uid && (
+            <TouchableOpacity onPress={() => deleteRecipe(id)}>
+              <Ionicons name="trash-outline" size={28} color="red" />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     );
   };
 
-  
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
       <StatusBar
@@ -178,34 +165,18 @@ export default function HomeScreen() {
       />
 
       <ScrollView
-        style={[
-          styles.container,
-          { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 },
-        ]}
+        style={[styles.container, {
+          paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0
+        }]}
         contentContainerStyle={{ padding: 20 }}
-        showsVerticalScrollIndicator={false}
       >
         <Text style={styles.header}>Feed</Text>
 
-        {loading && (
-          <ActivityIndicator size="large" color="#4CAF50" style={{ marginTop: 20 }} />
-        )}
-
+        {loading && <ActivityIndicator size="large" color="#4CAF50" />}
         {error !== "" && <Text style={styles.error}>{error}</Text>}
+        {!loading && recipes.length === 0 && <Text style={styles.noRecipes}>No recipes yet.</Text>}
 
-        {!loading && recipes.length === 0 && (
-          <Text style={styles.noRecipes}>No recipes yet.</Text>
-        )}
-
-        {recipes.map((item) => (
-          <RecipeCard
-            key={item.id}
-            item={item}
-            isFavorite={favorites.includes(item.id)}
-            onToggleFavorite={toggleFavorite}
-            onDelete={deleteRecipe}
-          />
-        ))}
+        {recipes.map(item => <RecipeCard key={item.id} item={item} />)}
       </ScrollView>
     </SafeAreaView>
   );
@@ -213,17 +184,51 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#111" },
-  header: { fontSize: 28, fontWeight: "bold", color: "#4CAF50", marginBottom: 20, textAlign: "center" },
+  header: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#4CAF50",
+    marginBottom: 20,
+    textAlign: "center"
+  },
   error: { color: "red", textAlign: "center", marginTop: 20 },
   noRecipes: { color: "#aaa", textAlign: "center", marginTop: 20 },
-  postContainer: { backgroundColor: "#1a1a1a", marginBottom: 25, borderRadius: 12, paddingBottom: 15 },
-  userRow: { flexDirection: "row", alignItems: "center", padding: 12 },
+
+  postContainer: {
+    backgroundColor: "#1a1a1a",
+    marginBottom: 25,
+    borderRadius: 12,
+    paddingBottom: 15
+  },
+
+  userRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12
+  },
+
   username: { color: "#fff", fontSize: 16, fontWeight: "bold" },
   date: { color: "#aaa", fontSize: 12 },
-  recipeImage: { width: "100%", height: 220, borderRadius: 12, marginTop: 10 },
-  recipeTitle: { color: "#fff", fontSize: 20, fontWeight: "bold", marginTop: 12, paddingHorizontal: 12 },
-  tagsRow: { flexDirection: "row", flexWrap: "wrap", marginTop: 8, paddingHorizontal: 12 },
-  tag: { backgroundColor: "#333", borderRadius: 10, paddingVertical: 4, paddingHorizontal: 10, marginRight: 6, marginBottom: 6 },
-  tagText: { color: "#4CAF50", fontSize: 12 },
-  actionRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 14, paddingHorizontal: 12 },
+
+  recipeImage: {
+    width: "100%",
+    height: 220,
+    borderRadius: 12,
+    marginTop: 10
+  },
+
+  recipeTitle: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "bold",
+    marginTop: 12,
+    paddingHorizontal: 12
+  },
+
+  actionRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 14,
+    paddingHorizontal: 12
+  }
 });
