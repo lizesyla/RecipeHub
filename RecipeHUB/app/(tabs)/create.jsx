@@ -22,11 +22,10 @@ export default function CreateRecipeScreen() {
   const [inputIngredient, setInputIngredient] = useState("");
   const [ingredients, setIngredients] = useState([]);
   const [instructions, setInstructions] = useState("");
+  const [imageURL, setImageURL] = useState("");
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
-
-  
   const [loading, setLoading] = useState(false);
 
   const showModal = (msg) => {
@@ -36,7 +35,6 @@ export default function CreateRecipeScreen() {
 
   const addIngredient = () => {
     if (inputIngredient.trim() === "") return;
-
     const newIngredient = { id: Date.now().toString(), name: inputIngredient };
     setIngredients([...ingredients, newIngredient]);
     setInputIngredient("");
@@ -48,13 +46,11 @@ export default function CreateRecipeScreen() {
 
   const saveRecipe = async () => {
     const user = auth.currentUser;
-
     if (!user) {
       showModal("You must be logged in to save a recipe.");
       return;
     }
 
-    
     if (title.trim() === "" || ingredients.length === 0 || instructions.trim() === "") {
       showModal("Please fill out all fields before saving the recipe.");
       return;
@@ -67,20 +63,20 @@ export default function CreateRecipeScreen() {
       title: title.trim(),
       ingredients,
       instructions: instructions.trim(),
+      imageURL: imageURL.trim() || "https://www.example.com/default-image.jpg",
       userId: user.uid,
       createdAt: new Date().toISOString(),
     };
 
     try {
       setLoading(true);
-
       await setDoc(doc(db, "users", user.uid, "recipes", recipeId), recipe);
 
-      
       setTitle("");
       setIngredients([]);
       setInputIngredient("");
       setInstructions("");
+      setImageURL("");
 
       showModal("Recipe saved successfully!");
     } catch (error) {
@@ -98,11 +94,9 @@ export default function CreateRecipeScreen() {
         translucent={Platform.OS === "android"}
       />
 
-      
       <Modal transparent visible={modalVisible || loading} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
-            
             {loading ? (
               <>
                 <ActivityIndicator size="large" color="#4CAF50" />
@@ -119,16 +113,12 @@ export default function CreateRecipeScreen() {
                 </TouchableOpacity>
               </>
             )}
-
           </View>
         </View>
       </Modal>
 
       <ScrollView
-        style={[
-          styles.container,
-          { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 },
-        ]}
+        style={[styles.container, { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }]}
         contentContainerStyle={{ padding: 20 }}
       >
         <Text style={styles.header}>Create Recipe</Text>
@@ -140,6 +130,15 @@ export default function CreateRecipeScreen() {
           placeholderTextColor="#aaa"
           value={title}
           onChangeText={setTitle}
+        />
+
+        <Text style={styles.label}>Recipe Image URL</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter image URL"
+          placeholderTextColor="#aaa"
+          value={imageURL}
+          onChangeText={setImageURL}
         />
 
         <Text style={styles.label}>Ingredients</Text>
@@ -184,104 +183,21 @@ export default function CreateRecipeScreen() {
   );
 }
 
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#111",
-  },
-  header: {
-    fontSize: 26,
-    fontWeight: "bold",
-    color: "#4CAF50",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  label: {
-    color: "#fff",
-    fontSize: 16,
-    marginBottom: 6,
-    marginTop: 12,
-  },
-  input: {
-    backgroundColor: "#222",
-    color: "#fff",
-    padding: 12,
-    borderRadius: 10,
-    fontSize: 16,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  addButton: {
-    marginLeft: 10,
-    backgroundColor: "#4CAF50",
-    padding: 6,
-    borderRadius: 8,
-  },
-  ingredientItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    backgroundColor: "#1E1E1E",
-    padding: 12,
-    borderRadius: 10,
-    marginTop: 6,
-  },
-  ingredientText: {
-    color: "#fff",
-    fontSize: 16,
-  },
-  deleteText: {
-    color: "red",
-    fontWeight: "bold",
-  },
-  button: {
-    flexDirection: "row",
-    backgroundColor: "#4CAF50",
-    padding: 14,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 20,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 18,
-    marginLeft: 8,
-    fontWeight: "bold",
-  },
-
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20
-  },
-  modalBox: {
-    backgroundColor: "#222",
-    padding: 20,
-    borderRadius: 12,
-    width: "90%",
-    alignItems: "center"
-  },
-  modalText: {
-    color: "#fff",
-    fontSize: 18,
-    textAlign: "center",
-    marginBottom: 20
-  },
-  modalButton: {
-    backgroundColor: "#4CAF50",
-    paddingVertical: 10,
-    paddingHorizontal: 30,
-    borderRadius: 8
-  },
-  modalButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold"
-  }
+  container: { flex: 1, backgroundColor: "#111" },
+  header: { fontSize: 26, fontWeight: "bold", color: "#4CAF50", marginBottom: 20, textAlign: "center" },
+  label: { color: "#fff", fontSize: 16, marginBottom: 6, marginTop: 12 },
+  input: { backgroundColor: "#222", color: "#fff", padding: 12, borderRadius: 10, fontSize: 16 },
+  row: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
+  addButton: { marginLeft: 10, backgroundColor: "#4CAF50", padding: 6, borderRadius: 8 },
+  ingredientItem: { flexDirection: "row", justifyContent: "space-between", backgroundColor: "#1E1E1E", padding: 12, borderRadius: 10, marginTop: 6 },
+  ingredientText: { color: "#fff", fontSize: 16 },
+  deleteText: { color: "red", fontWeight: "bold" },
+  button: { flexDirection: "row", backgroundColor: "#4CAF50", padding: 14, borderRadius: 10, justifyContent: "center", alignItems: "center", marginTop: 20 },
+  buttonText: { color: "#fff", fontSize: 18, marginLeft: 8, fontWeight: "bold" },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center", padding: 20 },
+  modalBox: { backgroundColor: "#222", padding: 20, borderRadius: 12, width: "90%", alignItems: "center" },
+  modalText: { color: "#fff", fontSize: 18, textAlign: "center", marginBottom: 20 },
+  modalButton: { backgroundColor: "#4CAF50", paddingVertical: 10, paddingHorizontal: 30, borderRadius: 8 },
+  modalButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" }
 });
