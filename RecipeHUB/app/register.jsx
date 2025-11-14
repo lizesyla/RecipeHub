@@ -1,9 +1,42 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-
+import { useState } from "react";
+import { auth, googleProvider } from "../firebase";
+import { createUserWithEmailAndPassword, updateProfile, signInWithPopup } from "firebase/auth";
 export default function Register() {
   const router = useRouter();
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const handleRegister = async () => {
+    if (!fullName || !email || !password || !confirmPassword) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Passwords do not match");
+      return;
+    }
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, { displayName: fullName });
+      Alert.alert("Success", "Account created successfully!");
+      router.push("/(tabs)/home");
+    } catch (error) {
+      Alert.alert("Registration Error", error.message);
+    }
+  };
+  const handleGoogleRegister = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+      router.push("/(tabs)/home");
+    } catch (error) {
+      Alert.alert("Google Sign Up Error", error.message);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -13,31 +46,42 @@ export default function Register() {
         style={styles.input}
         placeholder="Full Name"
         placeholderTextColor="#aaa"
+        value={fullName}
+        onChangeText={setFullName}
       />
       <TextInput
         style={styles.input}
         placeholder="Email"
         placeholderTextColor="#aaa"
         keyboardType="email-address"
+        value={email}
+        onChangeText={setEmail}
       />
       <TextInput
         style={styles.input}
         placeholder="Password"
         secureTextEntry
         placeholderTextColor="#aaa"
+        value={password}
+        onChangeText={setPassword}
       />
       <TextInput
         style={styles.input}
         placeholder="Confirm Password"
         secureTextEntry
         placeholderTextColor="#aaa"
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
       />
 
       <TouchableOpacity
-        style={styles.arrowButton}
+        style={styles.arrowButton} 
         onPress={() => router.push("/(tabs)/home")}
       >
         <Ionicons name="arrow-forward-circle" size={60} color="#4CAF50" />
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.googleButton} onPress={handleGoogleRegister}>
+        <Text style={styles.googleText}>Sign up with Google</Text>
       </TouchableOpacity>
 
       <View style={styles.loginView}>
@@ -91,4 +135,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
   },
+  googleButton: { marginTop: 20, backgroundColor: "#4285F4", padding: 10, borderRadius: 8 },
+  googleText: { color: "#fff", fontWeight: "bold", textAlign: "center" },
+  linkText: { color: "#4CAF50", fontSize: 16, textAlign: "center" },
+  loginView: { flexDirection: "row", marginTop: 20 },
+  accountText: { color: "#FFFFFF", fontSize: 16, textAlign: "center" }
 });
+

@@ -1,9 +1,36 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert  } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
+import { auth, googleProvider } from "../firebase";
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 
 export default function Login() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleEmailLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push("/(tabs)/home");
+    } catch (error) {
+      Alert.alert("Login Error", error.message);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+      router.push("/(tabs)/home");
+    } catch (error) {
+      Alert.alert("Google Login Error", error.message);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -13,12 +40,16 @@ export default function Login() {
         style={styles.input}
         placeholder="Email"
         placeholderTextColor="#aaa"
+        value={email}
+        onChangeText={setEmail}
       />
       <TextInput
         style={styles.input}
         placeholder="Password"
         secureTextEntry
         placeholderTextColor="#aaa"
+        value={password}
+        onChangeText={setPassword}
       />
 
       <TouchableOpacity
@@ -26,6 +57,9 @@ export default function Login() {
         onPress={() => router.push("/(tabs)/home")}
       >
         <Ionicons name="arrow-forward-circle" size={60} color="#4CAF50" />
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin}>
+        <Text style={styles.googleText}>Sign in with Google</Text>
       </TouchableOpacity>
 
       <View style={styles.signUpView}>
@@ -90,7 +124,27 @@ const styles = StyleSheet.create({
     color: "#4CAF50",
     fontSize: 16,
     textAlign: "center",
-  }
+  },
+  googleButton:
+   { marginTop: 20, 
+    backgroundColor: "#4285F4",
+     padding: 10,
+      borderRadius: 8 },
+  googleText: 
+  { color: "#fff",
+   fontWeight: "bold", 
+   textAlign: "center" },
+  linkText:
+   { color: "#4CAF50",
+    fontSize: 16,
+     textAlign: "center" },
+  signUpView:
+   { flexDirection: "row",
+    marginTop: 20 },
+  accountText:
+   { color: "#FFFFFF", 
+   fontSize: 16, 
+   textAlign: "center" }
 });
 
 
