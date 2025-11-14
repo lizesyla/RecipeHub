@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert  } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator  } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
@@ -9,29 +9,61 @@ export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const validateInputs = () => {
+    if (email.trim() === "" || password.trim() === "") {
+        setError("Both fields are required");
+        return false;
+    }
+
+    const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+    if (!emailRegex.test(email)) {
+        setError("Email is not valid");
+        return false;
+    }
+
+    setError("");
+    return true;
+  }
+
 
   const handleEmailLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Error", "Please fill in all fields");
-      return;
-    }
+    if (!validateInputs()) return;
+    
+    setLoading(true);
+    setError("");
+    
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      
-      setTimeout(() => {
-        router.replace("/(tabs)/home");
-      }, 100);
+      await signInWithEmailAndPassword(auth, email, password);
+      setLoading(false);
+      router.replace("/(tabs)/home");
     } catch (error) {
-      Alert.alert("Login Error", error.message);
+      setLoading(false);
+      if (error.code === "auth/invalid-credential") {
+        setError("Incorrect email or password");
+      } else {
+        setError(error.message);
+      }
     }
   };
 
   const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError("");
+    
     try {
       await signInWithPopup(auth, googleProvider);
-      
+      setLoading(false);
+      router.replace("/(tabs)/home");
     } catch (error) {
-      Alert.alert("Google Login Error", error.message);
+      setLoading(false);
+      if (error.code === "auth/invalid-credential") {
+        setError("Incorrect email or password");
+      } else {
+        setError(error.message);
+      }
     }
   };
 
@@ -44,7 +76,13 @@ export default function Login() {
         placeholder="Email"
         placeholderTextColor="#aaa"
         value={email}
-        onChangeText={setEmail}
+        onChangeText={(text) => {
+          setEmail(text);
+          setError("");
+        }}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoCorrect={false}
       />
       <TextInput
         style={styles.input}
@@ -52,15 +90,37 @@ export default function Login() {
         secureTextEntry
         placeholderTextColor="#aaa"
         value={password}
-        onChangeText={setPassword}
+        onChangeText={(text) => {
+          setPassword(text);
+          setError("");
+        }}
       />
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-<TouchableOpacity style={styles.arrowButton} onPress={handleEmailLogin}>
-        <Ionicons name="arrow-forward-circle" size={60} color="#4CAF50" />
+      <TouchableOpacity 
+        style={styles.arrowButton} 
+        onPress={handleEmailLogin}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator size="large" color="#4CAF50" />
+        ) : (
+          <Ionicons name="arrow-forward-circle" size={60} color="#4CAF50" />
+        )}
       </TouchableOpacity>
-      <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin}>
-        <Ionicons name="logo-google" size={20} color="#4CAF50" style={styles.googleIcon} />
-        <Text style={styles.googleText}>Sign in with Google</Text>
+      <TouchableOpacity 
+        style={styles.googleButton} 
+        onPress={handleGoogleLogin}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator size="small" color="#4CAF50" />
+        ) : (
+          <>
+            <Ionicons name="logo-google" size={20} color="#4CAF50" style={styles.googleIcon} />
+            <Text style={styles.googleText}>Sign in with Google</Text>
+          </>
+        )}
       </TouchableOpacity>
 
       <View style={styles.signUpView}>
@@ -73,13 +133,7 @@ export default function Login() {
       </View>
       
 
-      {/* about us */}
-       <TouchableOpacity
-        style={styles.aboutUsButton}
-        onPress={() => router.push("./profile/about")}
-      >
-        <Text style={styles.aboutUsText}>About Us</Text>
-      </TouchableOpacity>
+     
 
     </View>
   );
@@ -157,7 +211,13 @@ const styles = StyleSheet.create({
   accountText:
    { color: "#FFFFFF", 
    fontSize: 16, 
-   textAlign: "center" }
+   textAlign: "center" },
+  errorText: {
+    color: "#ff4444",
+    fontSize: 14,
+    marginTop: 5,
+    textAlign: "center",
+  }
 });
 
 
