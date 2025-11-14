@@ -1,97 +1,104 @@
-import { View, Text, StyleSheet, SafeAreaView, StatusBar, Platform, ScrollView } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import React, { useState, useEffect } from "react";
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from "react-native";
+import { auth, db } from "../../../firebase";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 export default function ProfileScreen() {
+  const [userData, setUserData] = useState(null);
+  const [recipes, setRecipes] = useState([]);
+  const [favorites, setFavorites] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const user = auth.currentUser;
+
+  useEffect(() => {
+    if (!user) return;
+
+    // User info
+    setUserData({ name: user.displayName, email: user.email });
+
+    const fetchData = async () => {
+      try {
+        // Recetat e krijuara
+        const recipesCol = collection(db, "users", user.uid, "recipes");
+        const recipesSnapshot = await getDocs(recipesCol);
+        const recipesList = recipesSnapshot.docs.map(doc => doc.data());
+        setRecipes(recipesList);
+
+        // Recetat favorite
+        const favCol = collection(db, "users", user.uid, "favorites");
+        const favSnapshot = await getDocs(favCol);
+        const favList = favSnapshot.docs.map(doc => doc.data());
+        setFavorites(favList);
+
+      } catch (error) {
+        console.log("Error fetching profile data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user]);
+
+  if (!user) {
+    return (
+      <View style={styles.center}>
+        <Text style={{ color: "#fff" }}>Please log in to view your profile.</Text>
+      </View>
+    );
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#4CAF50" />
+      </View>
+    );
+  }
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor={Platform.OS === "android" ? "#4CAF50" : "transparent"}
-        translucent={Platform.OS === "android"}
-      />
+    <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
+      <Text style={styles.header}>Profile</Text>
 
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
-       
+      <View style={styles.infoBox}>
+        <Text style={styles.label}>Name:</Text>
+        <Text style={styles.infoText}>{userData.name}</Text>
+      </View>
 
-        <View style={styles.infoBox}>
-          <Ionicons name="person-circle-outline" size={24} color="#4CAF50" />
-          <Text style={styles.infoTextBox}>RecipeHUB</Text>
-        </View>
-        <View style={styles.infoBox}>
-          <Ionicons name="mail-outline" size={24} color="#4CAF50" />
-          <Text style={styles.infoTextBox}>recipehub@example.com</Text>
-        </View>
-        <View style={styles.infoBox}>
-          <Ionicons name="calendar-outline" size={24} color="#4CAF50" />
-          <Text style={styles.infoTextBox}>Joined: Jan 2025</Text>
-        </View>
+      <View style={styles.infoBox}>
+        <Text style={styles.label}>Email:</Text>
+        <Text style={styles.infoText}>{userData.email}</Text>
+      </View>
 
-        <Text style={styles.sectionHeader}>Favorite Recipes</Text>
-        <View style={styles.favoriteBox}>
-          <Ionicons name="heart" size={20} color="#fff" />
-          <Text style={styles.favoriteText}>Chocolate Cake</Text>
+      <Text style={styles.sectionHeader}>My Recipes</Text>
+      {recipes.length === 0 && <Text style={styles.infoText}>No recipes yet.</Text>}
+      {recipes.map((recipe) => (
+        <View key={recipe.id} style={styles.recipeBox}>
+          <Text style={styles.recipeText}>{recipe.title}</Text>
         </View>
-        <View style={styles.favoriteBox}>
-          <Ionicons name="heart" size={20} color="#fff" />
-          <Text style={styles.favoriteText}>Pasta Carbonara</Text>
-        </View>
-        <View style={styles.favoriteBox}>
-          <Ionicons name="heart" size={20} color="#fff" />
-          <Text style={styles.favoriteText}>Caesar Salad</Text>
-        </View>
+      ))}
 
-        <Text style={styles.sectionHeader}>About Me</Text>
-        <Text style={styles.infoText}>Food lover and aspiring chef! Always exploring new recipes and sharing favorites.</Text>
-      </ScrollView>
-    </SafeAreaView>
+      <Text style={styles.sectionHeader}>Favorite Recipes</Text>
+      {favorites.length === 0 && <Text style={styles.infoText}>No favorite recipes yet.</Text>}
+      {favorites.map((fav) => (
+        <View key={fav.id} style={styles.recipeBox}>
+          <Text style={styles.recipeText}>{fav.title}</Text>
+        </View>
+      ))}
+
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerContainer: {
-    marginBottom: 20,
-    alignItems: "center",
-  },
-  headerText: {
-    color: "#4CAF50",
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-  infoBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#222",
-    padding: 12,
-    borderRadius: 10,
-    marginVertical: 6,
-  },
-  infoTextBox: {
-    color: "#fff",
-    fontSize: 16,
-    marginLeft: 12,
-  },
-  sectionHeader: {
-    color: "#4CAF50",
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  favoriteBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#222",
-    padding: 10,
-    borderRadius: 10,
-    marginVertical: 5,
-  },
-  favoriteText: {
-    color: "#fff",
-    fontSize: 16,
-    marginLeft: 10,
-  },
-  infoText: {
-    color: "#fff",
-    fontSize: 16,
-  },
+  container: { flex: 1, backgroundColor: "#111" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  header: { fontSize: 26, fontWeight: "bold", color: "#4CAF50", marginBottom: 20 },
+  infoBox: { marginBottom: 12 },
+  label: { color: "#aaa", fontSize: 16 },
+  infoText: { color: "#fff", fontSize: 18, marginTop: 2 },
+  sectionHeader: { color: "#4CAF50", fontSize: 20, fontWeight: "bold", marginTop: 20, marginBottom: 10 },
+  recipeBox: { backgroundColor: "#222", padding: 12, borderRadius: 10, marginBottom: 6 },
+  recipeText: { color: "#fff", fontSize: 16 }
 });
