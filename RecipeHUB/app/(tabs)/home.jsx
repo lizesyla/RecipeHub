@@ -140,3 +140,34 @@ export default function HomeScreen() {
       </View>
     );
   };
+return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={Platform.OS === "android" ? "#4CAF50" : "transparent"}
+        translucent={Platform.OS === "android"}
+      />
+      <ScrollView
+        style={[styles.container, { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }]}
+        contentContainerStyle={{ padding: 20 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.header}>Feed</Text>
+        {loading && <ActivityIndicator size="large" color="#4CAF50" style={{ marginTop: 20 }} />}
+        {error !== "" && <Text style={styles.error}>{error}</Text>}
+        {!loading && recipes.length === 0 && <Text style={styles.noRecipes}>No recipes yet.</Text>}
+
+        {/* Firebase Recipes */}
+        {recipes.map((item) => (
+          <RecipeCard
+            key={item.id}
+            item={item}
+            isFavorite={favorites.includes(item.id)}
+            onToggleFavorite={toggleFavorite}
+            onDelete={deleteRecipe}
+          />
+        ))}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
