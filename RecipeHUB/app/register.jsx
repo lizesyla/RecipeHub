@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { auth, googleProvider } from "../firebase";
-import { createUserWithEmailAndPassword, updateProfile, signInWithPopup } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, signOut } from "firebase/auth";
 export default function Register() {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
@@ -23,17 +23,18 @@ export default function Register() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: fullName });
-      Alert.alert("Success", "Account created successfully!");
-      // Wait a moment for auth state to update, then navigate
+   
+      await signOut(auth);
+      Alert.alert("Success", "Account created successfully! Please log in.");
       setTimeout(() => {
-        router.replace("/(tabs)/home");
+        router.replace("/");
       }, 100);
     } catch (error) {
       Alert.alert("Registration Error", error.message);
     }
   };
   const handleGoogleRegister = async () => {
-    // signInWithPopup only works on web
+  
     if (Platform.OS !== "web") {
       Alert.alert(
         "Not Available", 
@@ -43,7 +44,7 @@ export default function Register() {
     }
     try {
       await signInWithPopup(auth, googleProvider);
-      // Navigation will be handled automatically by AuthContext
+    
     } catch (error) {
       Alert.alert("Google Sign Up Error", error.message);
     }
