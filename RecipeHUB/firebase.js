@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 // Config i jot
@@ -19,6 +19,7 @@ const app = initializeApp(firebaseConfig);
 // Këto punojnë në mobile + web
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const googleProvider = new GoogleAuthProvider();
 
 // Analytics vetëm në web
 export let analytics = null;

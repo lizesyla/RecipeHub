@@ -1,10 +1,12 @@
 import { Stack } from "expo-router";
-import { StatusBar, Platform } from "react-native";
+import { StatusBar, Platform, View, ActivityIndicator } from "react-native";
 import * as Font from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect } from "react";
+import { AuthProvider, useAuth } from "../context/AuthContext";
 
-export default function RootLayout() {
+function RootLayoutNav() {
+  const { loading } = useAuth();
 
   // ✅ Kjo pjesë i ngarkon ikonat globalisht
   useEffect(() => {
@@ -12,6 +14,14 @@ export default function RootLayout() {
       ...Ionicons.font,
     });
   }, []);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#111" }}>
+        <ActivityIndicator size="large" color="#4CAF50" />
+      </View>
+    );
+  }
 
   return (
     <>
@@ -22,5 +32,13 @@ export default function RootLayout() {
       />
       <Stack screenOptions={{ headerShown: false }} />
     </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <RootLayoutNav />
+    </AuthProvider>
   );
 }

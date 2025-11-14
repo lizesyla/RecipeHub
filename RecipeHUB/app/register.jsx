@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
@@ -24,15 +24,26 @@ export default function Register() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: fullName });
       Alert.alert("Success", "Account created successfully!");
-      router.push("/(tabs)/home");
+      // Wait a moment for auth state to update, then navigate
+      setTimeout(() => {
+        router.replace("/(tabs)/home");
+      }, 100);
     } catch (error) {
       Alert.alert("Registration Error", error.message);
     }
   };
   const handleGoogleRegister = async () => {
+    // signInWithPopup only works on web
+    if (Platform.OS !== "web") {
+      Alert.alert(
+        "Not Available", 
+        "Google Sign-Up with popup is only available on web. Please use email/password registration on mobile devices."
+      );
+      return;
+    }
     try {
       await signInWithPopup(auth, googleProvider);
-      router.push("/(tabs)/home");
+      // Navigation will be handled automatically by AuthContext
     } catch (error) {
       Alert.alert("Google Sign Up Error", error.message);
     }
@@ -76,7 +87,7 @@ export default function Register() {
 
       <TouchableOpacity
         style={styles.arrowButton} 
-        onPress={() => router.push("/(tabs)/home")}
+        onPress={handleRegister}
       >
         <Ionicons name="arrow-forward-circle" size={60} color="#4CAF50" />
       </TouchableOpacity>

@@ -16,8 +16,11 @@ export default function Login() {
       return;
     }
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push("/(tabs)/home");
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      // Wait a moment for auth state to update, then navigate
+      setTimeout(() => {
+        router.replace("/(tabs)/home");
+      }, 100);
     } catch (error) {
       Alert.alert("Login Error", error.message);
     }
@@ -26,7 +29,7 @@ export default function Login() {
   const handleGoogleLogin = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
-      router.push("/(tabs)/home");
+      // Navigation will be handled automatically by AuthContext
     } catch (error) {
       Alert.alert("Google Login Error", error.message);
     }
@@ -52,13 +55,11 @@ export default function Login() {
         onChangeText={setPassword}
       />
 
-      <TouchableOpacity
-        style={styles.arrowButton}
-        onPress={() => router.push("/(tabs)/home")}
-      >
+<TouchableOpacity style={styles.arrowButton} onPress={handleEmailLogin}>
         <Ionicons name="arrow-forward-circle" size={60} color="#4CAF50" />
       </TouchableOpacity>
       <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin}>
+        <Ionicons name="logo-google" size={20} color="#4CAF50" style={styles.googleIcon} />
         <Text style={styles.googleText}>Sign in with Google</Text>
       </TouchableOpacity>
 
@@ -125,15 +126,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
   },
-  googleButton:
-   { marginTop: 20, 
-    backgroundColor: "#4285F4",
-     padding: 10,
-      borderRadius: 8 },
-  googleText: 
-  { color: "#fff",
-   fontWeight: "bold", 
-   textAlign: "center" },
+  googleButton: {
+    marginTop: 20,
+    backgroundColor: "#222",
+    padding: 12,
+    borderRadius: 10,
+    width: "80%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#4CAF50",
+  },
+  googleIcon: {
+    marginRight: 10,
+  },
+  googleText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
+  },
   linkText:
    { color: "#4CAF50",
     fontSize: 16,

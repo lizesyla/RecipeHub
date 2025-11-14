@@ -1,10 +1,12 @@
-import { useRouter } from "expo-router";
 import React from "react";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function Logout() {
-  const router = useRouter();
+  const { signOut } = useAuth();
+  
   React.useEffect(() => {
-    router.replace("/"); // kthen te login
+    signOut(); // This will sign out and redirect to login
   }, []);
+  
   return null;
 }
