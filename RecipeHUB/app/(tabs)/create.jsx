@@ -45,46 +45,53 @@ export default function CreateRecipeScreen() {
   };
 
   const saveRecipe = async () => {
-    const user = auth.currentUser;
-    if (!user) {
-      showModal("You must be logged in to save a recipe.");
-      return;
-    }
+  const user = auth.currentUser;
+  if (!user) {
+    showModal("You must be logged in to save a recipe.");
+    return;
+  }
 
-    if (title.trim() === "" || ingredients.length === 0 || instructions.trim() === "") {
-      showModal("Please fill out all fields before saving the recipe.");
-      return;
-    }
+  if (title.trim() === "" || ingredients.length === 0 || instructions.trim() === "") {
+    showModal("Please fill out all fields before saving the recipe.");
+    return;
+  }
 
-    const recipeId = Date.now().toString();
+  const recipeId = Date.now().toString();
 
-    const recipe = {
-      id: recipeId,
-      title: title.trim(),
-      ingredients,
-      instructions: instructions.trim(),
-      imageURL: imageURL.trim() || "https://www.example.com/default-image.jpg",
-      userId: user.uid,
-      createdAt: new Date().toISOString(),
-    };
-
-    try {
-      setLoading(true);
-      await setDoc(doc(db, "users", user.uid, "recipes", recipeId), recipe);
-
-      setTitle("");
-      setIngredients([]);
-      setInputIngredient("");
-      setInstructions("");
-      setImageURL("");
-
-      showModal("Recipe saved successfully!");
-    } catch (error) {
-      showModal("Error saving recipe. Try again.");
-    } finally {
-      setLoading(false);
-    }
+  const recipe = {
+    id: recipeId,
+    title: title.trim(),
+    ingredients,
+    instructions: instructions.trim(),
+    imageURL: imageURL.trim() || "https://www.example.com/default-image.jpg",
+    userId: user.uid,
+    username: user.email, 
+    createdAt: new Date().toISOString(),
   };
+
+  try {
+    setLoading(true);
+
+    // 1️⃣ Save in user's personal folder (old behavior)
+    await setDoc(doc(db, "users", user.uid, "recipes", recipeId), recipe);
+
+    // 2️⃣ Save also in global allRecipes (new feed behavior)
+    await setDoc(doc(db, "allRecipes", recipeId), recipe);
+
+    setTitle("");
+    setIngredients([]);
+    setInputIngredient("");
+    setInstructions("");
+    setImageURL("");
+
+    showModal("Recipe saved successfully!");
+  } catch (error) {
+    showModal("Error saving recipe. Try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
