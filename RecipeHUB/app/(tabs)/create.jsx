@@ -1,38 +1,93 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, StatusBar, Platform } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  StatusBar,
+  Platform,
+  Modal,
+  ActivityIndicator
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function CreateScreen() {
+import { auth, db } from "../../firebase.js";
+import { doc, setDoc } from "firebase/firestore";
+
+export default function CreateRecipeScreen() {
   const [title, setTitle] = useState("");
   const [inputIngredient, setInputIngredient] = useState("");
   const [ingredients, setIngredients] = useState([]);
   const [instructions, setInstructions] = useState("");
-  const [recipeSaved, setRecipeSaved] = useState(null); // ruan recetën e plotë
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+
+  
+  const [loading, setLoading] = useState(false);
+
+  const showModal = (msg) => {
+    setModalMessage(msg);
+    setModalVisible(true);
+  };
 
   const addIngredient = () => {
     if (inputIngredient.trim() === "") return;
+
     const newIngredient = { id: Date.now().toString(), name: inputIngredient };
     setIngredients([...ingredients, newIngredient]);
     setInputIngredient("");
   };
 
   const deleteIngredient = (id) => {
-    setIngredients(ingredients.filter(item => item.id !== id));
+    setIngredients(ingredients.filter((item) => item.id !== id));
   };
 
-  const saveRecipe = () => {
-    const recipe = {
-      title,
-      ingredients,
-      instructions
-    };
-    setRecipeSaved(recipe);
+  const saveRecipe = async () => {
+    const user = auth.currentUser;
 
-    setTitle("");
-    setIngredients([]);
-    setInputIngredient("");
-    setInstructions("");
+    if (!user) {
+      showModal("You must be logged in to save a recipe.");
+      return;
+    }
+
+    
+    if (title.trim() === "" || ingredients.length === 0 || instructions.trim() === "") {
+      showModal("Please fill out all fields before saving the recipe.");
+      return;
+    }
+
+    const recipeId = Date.now().toString();
+
+    const recipe = {
+      id: recipeId,
+      title: title.trim(),
+      ingredients,
+      instructions: instructions.trim(),
+      userId: user.uid,
+      createdAt: new Date().toISOString(),
+    };
+
+    try {
+      setLoading(true);
+
+      await setDoc(doc(db, "users", user.uid, "recipes", recipeId), recipe);
+
+      
+      setTitle("");
+      setIngredients([]);
+      setInputIngredient("");
+      setInstructions("");
+
+      showModal("Recipe saved successfully!");
+    } catch (error) {
+      showModal("Error saving recipe. Try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -43,8 +98,37 @@ export default function CreateScreen() {
         translucent={Platform.OS === "android"}
       />
 
+      
+      <Modal transparent visible={modalVisible || loading} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            
+            {loading ? (
+              <>
+                <ActivityIndicator size="large" color="#4CAF50" />
+                <Text style={[styles.modalText, { marginTop: 15 }]}>Saving recipe...</Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.modalText}>{modalMessage}</Text>
+                <TouchableOpacity
+                  onPress={() => setModalVisible(false)}
+                  style={styles.modalButton}
+                >
+                  <Text style={styles.modalButtonText}>OK</Text>
+                </TouchableOpacity>
+              </>
+            )}
+
+          </View>
+        </View>
+      </Modal>
+
       <ScrollView
-        style={[styles.container, { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }]}
+        style={[
+          styles.container,
+          { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 },
+        ]}
         contentContainerStyle={{ padding: 20 }}
       >
         <Text style={styles.header}>Create Recipe</Text>
@@ -72,7 +156,7 @@ export default function CreateScreen() {
           </TouchableOpacity>
         </View>
 
-        {ingredients.map(item => (
+        {ingredients.map((item) => (
           <View key={item.id} style={styles.ingredientItem}>
             <Text style={styles.ingredientText}>{item.name}</Text>
             <TouchableOpacity onPress={() => deleteIngredient(item.id)}>
@@ -92,119 +176,10 @@ export default function CreateScreen() {
         />
 
         <TouchableOpacity style={styles.button} onPress={saveRecipe}>
-          <Ionicons name="add-circle-outline" size={24} color="#fff" />
+          <Ionicons name="save-outline" size={24} color="#fff" />
           <Text style={styles.buttonText}>Save Recipe</Text>
         </TouchableOpacity>
-
-        {recipeSaved ? (
-          <View style={styles.savedRecipe}>
-            <Text style={styles.savedTitle}>{recipeSaved.title}</Text>
-            {recipeSaved.ingredients.map(ing => (
-              <Text key={ing.id} style={styles.savedIngredient}>• {ing.name}</Text>
-            ))}
-            <Text style={styles.savedInstructions}>{recipeSaved.instructions}</Text>
-          </View>
-        ) : (
-          <Text style={styles.noRecipe}>No recipe yet</Text>
-        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#111",
-  },
-  header: {
-    fontSize: 26,
-    fontWeight: "bold",
-    color: "#4CAF50",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  label: {
-    color: "#fff",
-    fontSize: 16,
-    marginBottom: 6,
-    marginTop: 12,
-  },
-  input: {
-    backgroundColor: "#222",
-    color: "#fff",
-    padding: 12,
-    borderRadius: 10,
-    fontSize: 16,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  addButton: {
-    marginLeft: 10,
-    backgroundColor: "#4CAF50",
-    padding: 6,
-    borderRadius: 8,
-  },
-  ingredientItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    backgroundColor: "#1E1E1E",
-    padding: 12,
-    borderRadius: 10,
-    marginTop: 6,
-  },
-  ingredientText: {
-    color: "#fff",
-    fontSize: 16,
-  },
-  deleteText: {
-    color: "red",
-    fontWeight: "bold",
-  },
-  button: {
-    flexDirection: "row",
-    backgroundColor: "#4CAF50",
-    padding: 14,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 20,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 18,
-    marginLeft: 8,
-    fontWeight: "bold",
-  },
-  savedRecipe: {
-    marginTop: 30,
-    padding: 15,
-    backgroundColor: "#222",
-    borderRadius: 12,
-  },
-  savedTitle: {
-    color: "#4CAF50",
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  savedIngredient: {
-    color: "#fff",
-    fontSize: 16,
-    marginLeft: 5,
-  },
-  savedInstructions: {
-    color: "#fff",
-    fontSize: 16,
-    marginTop: 10,
-  },
-  noRecipe: {
-    color: "gray",
-    fontSize: 16,
-    marginTop: 30,
-    textAlign: "center",
-  },
-});
