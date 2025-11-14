@@ -5,7 +5,7 @@ export default function Logout() {
   const { signOut } = useAuth();
   
   React.useEffect(() => {
-    signOut(); // This will sign out and redirect to login
+    signOut(); 
   }, []);
   
   return null;

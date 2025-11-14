@@ -17,7 +17,7 @@ export default function Login() {
     }
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      // Wait a moment for auth state to update, then navigate
+      
       setTimeout(() => {
         router.replace("/(tabs)/home");
       }, 100);
@@ -29,7 +29,7 @@ export default function Login() {
   const handleGoogleLogin = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
-      // Navigation will be handled automatically by AuthContext
+      
     } catch (error) {
       Alert.alert("Google Login Error", error.message);
     }
