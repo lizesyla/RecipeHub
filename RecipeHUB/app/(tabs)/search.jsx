@@ -2,6 +2,9 @@ import React, { useEffect } from "react";
 import { View, Text, TextInput, StyleSheet, ScrollView, SafeAreaView, StatusBar, Platform } from "react-native";
 import * as Font from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "../../firebase"
 
 
 
@@ -12,7 +15,10 @@ export default function SearchScreen() {
       ...Ionicons.font,
     });
   }, []);
-  
+
+  const [searchText, setSearchText] = useState("");
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
