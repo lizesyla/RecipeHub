@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { db } from "../../../firebase";
+import { db } from "../../firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 
 export default function EditRecipe() {
