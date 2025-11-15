@@ -11,17 +11,12 @@ import {
   Modal,
   ActivityIndicator
 } from "react-native";
-
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-
-import { useRouter } from "expo-router";
 import { auth, db } from "../../firebase.js";
 import { doc, setDoc } from "firebase/firestore";
 
 export default function CreateRecipeScreen() {
-  const router = useRouter();
-
   const [title, setTitle] = useState("");
   const [inputIngredient, setInputIngredient] = useState("");
   const [ingredients, setIngredients] = useState([]);
@@ -87,7 +82,7 @@ export default function CreateRecipeScreen() {
       setInstructions("");
       setImageURL("");
 
-      router.replace("/home"); 
+      showModal("Recipe created successfully!");
     } catch (error) {
       showModal("Error saving recipe. Try again.");
     } finally {
@@ -108,7 +103,7 @@ export default function CreateRecipeScreen() {
           <View style={styles.modalBox}>
             {loading ? (
               <>
-                <ActivityIndicator size="large" color="#4CAF50" />
+                <ActivityIndicator size="large" />
                 <Text style={[styles.modalText, { marginTop: 15 }]}>
                   Saving recipe...
                 </Text>
@@ -129,9 +124,13 @@ export default function CreateRecipeScreen() {
       </Modal>
 
       <ScrollView
-        style={[styles.container, {
-          paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0
-        }]}
+        style={[
+          styles.container,
+          {
+            paddingTop:
+              Platform.OS === "android" ? StatusBar.currentHeight : 0,
+          },
+        ]}
         contentContainerStyle={{ padding: 20 }}
       >
         <Text style={styles.header}>Create Recipe</Text>
@@ -203,7 +202,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#4CAF50",
     marginBottom: 20,
-    textAlign: "center"
+    textAlign: "center",
   },
   label: { color: "#fff", fontSize: 16, marginBottom: 6, marginTop: 12 },
   input: {
@@ -211,7 +210,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     padding: 12,
     borderRadius: 10,
-    fontSize: 16
+    fontSize: 16,
   },
 
   row: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
@@ -220,7 +219,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     backgroundColor: "#4CAF50",
     padding: 6,
-    borderRadius: 8
+    borderRadius: 8,
   },
 
   ingredientItem: {
@@ -229,7 +228,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#1E1E1E",
     padding: 12,
     borderRadius: 10,
-    marginTop: 6
+    marginTop: 6,
   },
 
   ingredientText: { color: "#fff", fontSize: 16 },
@@ -242,14 +241,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 20
+    marginTop: 20,
   },
 
   buttonText: {
     color: "#fff",
     fontSize: 18,
     marginLeft: 8,
-    fontWeight: "bold"
+    fontWeight: "bold",
   },
 
   modalOverlay: {
@@ -257,7 +256,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "center",
     alignItems: "center",
-    padding: 20
+    padding: 20,
   },
 
   modalBox: {
@@ -265,26 +264,26 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 12,
     width: "90%",
-    alignItems: "center"
+    alignItems: "center",
   },
 
   modalText: {
     color: "#fff",
     fontSize: 18,
     textAlign: "center",
-    marginBottom: 20
+    marginBottom: 20,
   },
 
   modalButton: {
     backgroundColor: "#4CAF50",
     paddingVertical: 10,
     paddingHorizontal: 30,
-    borderRadius: 8
+    borderRadius: 8,
   },
 
   modalButtonText: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "bold"
-  }
+    fontWeight: "bold",
+  },
 });
