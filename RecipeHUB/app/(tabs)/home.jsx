@@ -104,17 +104,31 @@ export default function HomeScreen() {
       return;
     }
 
-   
-    setRecipes(prev => prev.filter(item => item.id !== id));
+    Alert.alert(
+      "Confirm Deletion",
+      "Are you sure you want to delete this recipe? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            setRecipes(prev => prev.filter(item => item.id !== id));
 
-    try {
-      await deleteDoc(doc(db, "AllRecipes", id));
-    } catch (err) {
-      console.log(err);
-      Alert.alert("Error", "Failed to delete recipe.");
-      
-      loadRecipesRealtime();
-    }
+            try {
+              await deleteDoc(doc(db, "AllRecipes", id));
+            } catch (err) {
+              console.log(err);
+              Alert.alert("Error", "Failed to delete recipe. Restoring local state.");
+              loadRecipesRealtime(); 
+            }
+          }
+        }
+      ]
+    );
   };
 
   
@@ -135,18 +149,31 @@ export default function HomeScreen() {
         <View style={styles.userRow}>
           <Ionicons name="person-circle-outline" size={38} color="#4CAF50" />
           <View style={{ marginLeft: 8 }}>
-            <Text style={styles.username}>{item.ownerEmail}</Text>
+            <Text style={styles.username}>{item.ownerEmail || "Community User"}</Text>
             {formattedDate !== "" && (
               <Text style={styles.date}>{formattedDate}</Text>
             )}
           </View>
         </View>
 
-        <Image source={{ uri: item.imageURL }} style={styles.recipeImage} />
+        <Image 
+          source={{ uri: item.imageURL || "https://placehold.co/600x400/111/fff?text=No+Image" }} 
+          style={styles.recipeImage} 
+        />
 
-        <TouchableOpacity onPress={() => router.push(`/recipe/${id}`)}>
-          <Text style={styles.recipeTitle}>{item.title}</Text>
-        </TouchableOpacity>
+      <TouchableOpacity 
+          onPress={() => {
+            if (item.ownerId === "themealdb" || item.isFromAPI) {
+              router.push(`/(modals)/api-recipe/${item.id}`);
+            } else {
+              
+              router.push(`/recipe/${item.id}`);
+            }
+          }}
+          style={styles.recipeTitleContainer}
+      >
+        <Text style={styles.recipeTitle}>{item.title}</Text> 
+      </TouchableOpacity>
 
         <View style={styles.actionRow}>
           <TouchableOpacity onPress={() => toggleFavorite(item)}>
