@@ -166,7 +166,13 @@ export default function ProfileScreen() {
         <TouchableOpacity
           key={fav.id}
           style={styles.recipeBox}
-          onPress={() => router.push(`/recipe/${fav.id}`)}
+          onPress={() => {
+            if (fav.ownerId === "themealdb" || fav.isFromAPI) {
+              router.push(`/(tabs)/api-recipe/${fav.id}`);
+            } else {
+              router.push(`/recipe/${fav.id}`);
+            }
+          }}
         >
           <Text style={styles.recipeText}>{fav.title}</Text>
 
