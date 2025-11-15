@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -28,9 +29,13 @@ export default function HomeScreen() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const unsub = loadRecipesRealtime();
-    loadFavorites();
-    return unsub; 
+    const unsubRecipes = loadRecipesRealtime();
+    const unsubFavorites = loadFavoritesRealtime();
+
+    return () => {
+      unsubRecipes();
+      if (unsubFavorites) unsubFavorites();
+    };
   }, []);
 
   
@@ -45,7 +50,7 @@ export default function HomeScreen() {
         setRecipes(items);
         setLoading(false);
       },
-      (err) => {
+      () => {
         setError("Error loading recipes.");
         setLoading(false);
       }
@@ -55,55 +60,57 @@ export default function HomeScreen() {
   };
 
   
-  const loadFavorites = async () => {
+  const loadFavoritesRealtime = () => {
     if (!user) return;
+
     const favRef = collection(db, "users", user.uid, "favorites");
-    const snap = await getDocs(favRef);
-    const favs = snap.docs.map(doc => doc.id);
-    setFavorites(favs);
+
+    const unsub = onSnapshot(favRef, (snap) => {
+      const favIds = snap.docs.map(d => d.id);
+      setFavorites(favIds);
+    });
+
+    return unsub;
   };
 
   
   const toggleFavorite = async (item) => {
     if (!user) return;
+
     const favDoc = doc(db, "users", user.uid, "favorites", item.id);
 
     setFavorites(prev => {
       if (prev.includes(item.id)) {
-        
         deleteDoc(favDoc).catch(err => console.log(err));
         return prev.filter(f => f !== item.id);
       } else {
-        
         setDoc(favDoc, item).catch(err => console.log(err));
         return [...prev, item.id];
       }
     });
   };
 
- 
-  const deleteRecipe = async (id) => {
-    if (!user) return;
+  
+  const deleteRecipe = async (id, ownerId) => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
 
-    Alert.alert(
-      "Delete Recipe",
-      "Are you sure you want to delete this recipe?",
-      [
-        { text: "Cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteDoc(doc(db, "AllRecipes", id));
-              setRecipes(prev => prev.filter(item => item.id !== id));
-            } catch {
-              Alert.alert("Error", "Failed to delete recipe.");
-            }
-          },
-        },
-      ]
-    );
+    if (ownerId !== currentUser.uid) {
+      Alert.alert("Error", "You can only delete your own recipes.");
+      return;
+    }
+
+   
+    setRecipes(prev => prev.filter(item => item.id !== id));
+
+    try {
+      await deleteDoc(doc(db, "AllRecipes", id));
+    } catch (err) {
+      console.log(err);
+      Alert.alert("Error", "Failed to delete recipe.");
+      
+      loadRecipesRealtime();
+    }
   };
 
   
@@ -147,7 +154,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
 
           {item.ownerId === user?.uid && (
-            <TouchableOpacity onPress={() => deleteRecipe(id)}>
+            <TouchableOpacity onPress={() => deleteRecipe(item.id, item.ownerId)}>
               <Ionicons name="trash-outline" size={28} color="red" />
             </TouchableOpacity>
           )}
@@ -227,7 +234,7 @@ const styles = StyleSheet.create({
 
   actionRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "space-between", 
     marginTop: 14,
     paddingHorizontal: 12
   }

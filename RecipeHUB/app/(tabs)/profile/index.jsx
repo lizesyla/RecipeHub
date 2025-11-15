@@ -1,9 +1,29 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from "react-native";
+import React, { useState, useCallback } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  ActivityIndicator,
+  TouchableOpacity,
+  Image
+} from "react-native";
+import { useRouter, useFocusEffect } from "expo-router";
 import { auth, db } from "../../../firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+  deleteDoc,
+  onSnapshot
+} from "firebase/firestore";
 
 export default function ProfileScreen() {
+  const router = useRouter();
+
   const [userData, setUserData] = useState(null);
   const [recipes, setRecipes] = useState([]);
   const [favorites, setFavorites] = useState([]);
@@ -11,35 +31,74 @@ export default function ProfileScreen() {
 
   const user = auth.currentUser;
 
-  useEffect(() => {
+  // -------------------------------------------------------
+  // FETCH MY RECIPES (static)
+  // -------------------------------------------------------
+  const loadMyRecipes = async () => {
     if (!user) return;
 
-    // User info
-    setUserData({ name: user.displayName, email: user.email });
+    const allRecipesRef = collection(db, "AllRecipes");
+    const q = query(allRecipesRef, where("ownerId", "==", user.uid));
 
-    const fetchData = async () => {
-      try {
-        // Recetat e krijuara
-        const recipesCol = collection(db, "users", user.uid, "recipes");
-        const recipesSnapshot = await getDocs(recipesCol);
-        const recipesList = recipesSnapshot.docs.map(doc => doc.data());
-        setRecipes(recipesList);
+    const snap = await getDocs(q);
+    setRecipes(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+  };
 
-        // Recetat favorite
-        const favCol = collection(db, "users", user.uid, "favorites");
-        const favSnapshot = await getDocs(favCol);
-        const favList = favSnapshot.docs.map(doc => doc.data());
-        setFavorites(favList);
+  // -------------------------------------------------------
+  // REALTIME FAVORITES LISTENER
+  // -------------------------------------------------------
+  const loadFavoritesRealtime = () => {
+    if (!user) return;
 
-      } catch (error) {
-        console.log("Error fetching profile data:", error);
-      } finally {
-        setLoading(false);
+    const favRef = collection(db, "users", user.uid, "favorites");
+
+    const unsub = onSnapshot(favRef, async (snap) => {
+      const ids = snap.docs.map(f => f.id);
+
+      const fullFavs = [];
+      for (let id of ids) {
+        const recipeRef = doc(db, "AllRecipes", id);
+        const data = await getDoc(recipeRef);
+        if (data.exists()) {
+          fullFavs.push({ id, ...data.data() });
+        }
       }
-    };
 
-    fetchData();
-  }, [user]);
+      setFavorites(fullFavs);
+      setLoading(false);
+    });
+
+    return unsub;
+  };
+
+  // -------------------------------------------------------
+  // Load everything when screen focuses
+  // -------------------------------------------------------
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      setUserData({
+        name: user.displayName || "Unnamed",
+        email: user.email,
+        photo: user.photoURL
+      });
+
+      loadMyRecipes();
+      const unsubFavs = loadFavoritesRealtime();
+
+      return () => {
+        if (unsubFavs) unsubFavs();
+      };
+    }, [])
+  );
+
+  // ------------------------------------------------------
+  // Remove favorite
+  // ------------------------------------------------------
+  const removeFavorite = async (id) => {
+    await deleteDoc(doc(db, "users", user.uid, "favorites", id));
+    // nuk duhet me thirr fetchData — realtime e bo vetë
+  };
 
   if (!user) {
     return (
@@ -59,32 +118,62 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
-      <Text style={styles.header}>Profile</Text>
-
-      <View style={styles.infoBox}>
-        <Text style={styles.label}>Name:</Text>
-        <Text style={styles.infoText}>{userData.name}</Text>
-      </View>
-
-      <View style={styles.infoBox}>
-        <Text style={styles.label}>Email:</Text>
-        <Text style={styles.infoText}>{userData.email}</Text>
+      
+      <View style={styles.profileHeader}>
+        <Image
+          source={{
+            uri: userData.photo || "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+          }}
+          style={styles.avatar}
+        />
+        <Text style={styles.name}>{userData.name}</Text>
+        <Text style={styles.email}>{userData.email}</Text>
       </View>
 
       <Text style={styles.sectionHeader}>My Recipes</Text>
-      {recipes.length === 0 && <Text style={styles.infoText}>No recipes yet.</Text>}
-      {recipes.map((recipe) => (
-        <View key={recipe.id} style={styles.recipeBox}>
-          <Text style={styles.recipeText}>{recipe.title}</Text>
-        </View>
+
+      {recipes.length === 0 && (
+        <Text style={styles.emptyText}>You haven’t added any recipes yet.</Text>
+      )}
+
+      {recipes.map((item) => (
+        <TouchableOpacity
+          key={item.id}
+          style={styles.recipeBox}
+          onPress={() => router.push(`/recipe/${item.id}`)}
+        >
+          <Text style={styles.recipeText}>{item.title}</Text>
+
+          <TouchableOpacity
+            onPress={() => router.push(`/edit/${item.id}`)}
+            style={styles.editBtn}
+          >
+            <Text style={styles.editText}>Edit</Text>
+          </TouchableOpacity>
+        </TouchableOpacity>
       ))}
 
       <Text style={styles.sectionHeader}>Favorite Recipes</Text>
-      {favorites.length === 0 && <Text style={styles.infoText}>No favorite recipes yet.</Text>}
+
+      {favorites.length === 0 && (
+        <Text style={styles.emptyText}>No favorite recipes yet.</Text>
+      )}
+
       {favorites.map((fav) => (
-        <View key={fav.id} style={styles.recipeBox}>
+        <TouchableOpacity
+          key={fav.id}
+          style={styles.recipeBox}
+          onPress={() => router.push(`/recipe/${fav.id}`)}
+        >
           <Text style={styles.recipeText}>{fav.title}</Text>
-        </View>
+
+          <TouchableOpacity
+            onPress={() => removeFavorite(fav.id)}
+            style={styles.removeBtn}
+          >
+            <Text style={styles.removeText}>Remove</Text>
+          </TouchableOpacity>
+        </TouchableOpacity>
       ))}
 
     </ScrollView>
@@ -94,11 +183,59 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#111" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  header: { fontSize: 26, fontWeight: "bold", color: "#4CAF50", marginBottom: 20 },
-  infoBox: { marginBottom: 12 },
-  label: { color: "#aaa", fontSize: 16 },
-  infoText: { color: "#fff", fontSize: 18, marginTop: 2 },
-  sectionHeader: { color: "#4CAF50", fontSize: 20, fontWeight: "bold", marginTop: 20, marginBottom: 10 },
-  recipeBox: { backgroundColor: "#222", padding: 12, borderRadius: 10, marginBottom: 6 },
-  recipeText: { color: "#fff", fontSize: 16 }
+
+  profileHeader: {
+    alignItems: "center",
+    marginBottom: 25,
+    backgroundColor: "#1a1a1a",
+    padding: 20,
+    borderRadius: 12
+  },
+
+  avatar: {
+    width: 90,
+    height: 90,
+    borderRadius: 50,
+    marginBottom: 10
+  },
+
+  name: { fontSize: 22, color: "#fff", fontWeight: "bold" },
+  email: { color: "#aaa", marginTop: 4 },
+
+  sectionHeader: {
+    color: "#4CAF50",
+    fontSize: 20,
+    fontWeight: "bold",
+    marginTop: 25,
+    marginBottom: 10
+  },
+
+  emptyText: { color: "#aaa", marginBottom: 10 },
+
+  recipeBox: {
+    backgroundColor: "#222",
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 8
+  },
+
+  recipeText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+
+  editBtn: {
+    position: "absolute",
+    right: 10,
+    top: 12,
+    padding: 5
+  },
+
+  editText: { color: "#4CAF50", fontWeight: "bold" },
+
+  removeBtn: {
+    position: "absolute",
+    right: 10,
+    top: 12,
+    padding: 5
+  },
+
+  removeText: { color: "red", fontWeight: "bold" }
 });
