@@ -4,9 +4,9 @@ import * as Font from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "../../firebase"
-
-
+import { db } from "../../firebase" 
+import { TouchableOpacity } from "react-native";
+import { router } from "expo-router";
 
 export default function SearchScreen() {
   
@@ -84,12 +84,15 @@ export default function SearchScreen() {
 {!loading && results.length === 0 && searchText.length > 1 && (
   <Text style={{ color: "#aaa", marginTop: 10 }}>No results found</Text>
 )}
-
 {results.map(item => (
-  <View key={item.id} style={styles.resultItem}>
+  <TouchableOpacity
+    key={item.id}
+    style={styles.resultItem}
+    onPress={() => router.push(`/recipe/${item.id}`)}
+  >
     <Ionicons name="restaurant-outline" size={20} color="#fff" />
     <Text style={styles.resultText}>{item.title}</Text>
-  </View>
+  </TouchableOpacity>
 ))}
 
       </ScrollView>
