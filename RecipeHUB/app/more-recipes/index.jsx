@@ -17,9 +17,10 @@ import {
   onSnapshot,
   setDoc,
   deleteDoc,
-  getDoc, // Shto këtë import
+  getDoc, 
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
+import {router } from "expo-router";
 
 export default function MoreRecipes() {
   const [user, setUser] = useState(null);
@@ -48,7 +49,6 @@ export default function MoreRecipes() {
     return unsubscribe;
   }, [user]);
 
-  // Merr recetat nga API
   useEffect(() => {
     fetchMeals();
   }, []);
@@ -86,14 +86,11 @@ export default function MoreRecipes() {
       }
     } else {
       try {
-        // Së pari, ruaj në AllRecipes nëse nuk ekziston
         const recipeInAllRecipes = doc(db, "AllRecipes", meal.idMeal);
         
-        // Kontrollo nëse receta ekziston në AllRecipes
         const existingRecipe = await getDoc(recipeInAllRecipes);
         
         if (!existingRecipe.exists()) {
-          // Krijo recetën në AllRecipes
           await setDoc(recipeInAllRecipes, {
             id: meal.idMeal,
             title: meal.strMeal,
@@ -109,7 +106,6 @@ export default function MoreRecipes() {
           });
         }
 
-        // Tani ruaj në favorites
         await setDoc(favDoc, {
           id: meal.idMeal,
           title: meal.strMeal,
@@ -127,7 +123,6 @@ export default function MoreRecipes() {
     }
   };
 
-  // Funksion ndihmës për të nxjerrë ingredientet
   const getIngredients = (meal) => {
     const ingredients = [];
     for (let i = 1; i <= 20; i++) {
@@ -142,6 +137,12 @@ export default function MoreRecipes() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
+        <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+      >
+        <Ionicons name="arrow-back-circle" size={50} color="#4CAF50" />
+      </TouchableOpacity>
       <Text style={styles.header}>More Recipes from Database</Text>
 
       {loading ? (
@@ -204,5 +205,11 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 10,
+  },
+    backButton: {
+    position: "absolute",
+    top: 10,
+    left: 20,
+    zIndex: 10,
   },
 });
