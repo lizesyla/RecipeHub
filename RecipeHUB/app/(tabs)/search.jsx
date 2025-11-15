@@ -30,7 +30,7 @@ export default function SearchScreen() {
   
     try {
       const q = query(
-        collection(db, "recipes"),
+        collection(db, "AllRecipes"),
         where("keywords", "array-contains", searchText.toLowerCase())
       );
   
