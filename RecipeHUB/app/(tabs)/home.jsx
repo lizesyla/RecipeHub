@@ -90,6 +90,10 @@ export default function HomeScreen() {
     });
   };
 
+  const onMoreRecipesPress = () => {
+    router.push("/more-recipes");
+  };
+
   
   const deleteRecipe = async (id, ownerId) => {
     const currentUser = auth.currentUser;
@@ -177,7 +181,14 @@ export default function HomeScreen() {
         }]}
         contentContainerStyle={{ padding: 20 }}
       >
+      <View style={styles.headerContainer}>
+        <View style={{ width: 100 }} /> 
         <Text style={styles.header}>Feed</Text>
+        <TouchableOpacity onPress={onMoreRecipesPress} style={styles.moreButton}>
+          <Text style={styles.moreButtonText}>More Recipes</Text>
+        </TouchableOpacity>
+      </View>
+
 
         {loading && <ActivityIndicator size="large" color="#4CAF50" />}
         {error !== "" && <Text style={styles.error}>{error}</Text>}
@@ -190,14 +201,24 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#111" },
+  container: { 
+    flex: 1, 
+    backgroundColor: "#111" 
+  },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
   header: {
     fontSize: 28,
     fontWeight: "bold",
     color: "#4CAF50",
-    marginBottom: 20,
-    textAlign: "center"
+    textAlign: "center",
+    flex: 1
   },
+  
   error: { color: "red", textAlign: "center", marginTop: 20 },
   noRecipes: { color: "#aaa", textAlign: "center", marginTop: 20 },
 
@@ -237,5 +258,24 @@ const styles = StyleSheet.create({
     justifyContent: "space-between", 
     marginTop: 14,
     paddingHorizontal: 12
-  }
+  },
+  headerContainer: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: 20,
+},
+
+moreButton: {
+  paddingHorizontal: 10,
+  paddingVertical: 6,
+  backgroundColor: "#4CAF50",
+  borderRadius: 6,
+},
+moreButtonText: {
+  color: "#fff",
+  fontWeight: "bold",
+  fontSize: 16,
+}
+
 });
