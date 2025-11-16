@@ -129,7 +129,13 @@ export default function RecipeDetailScreen() {
         <Text style={styles.title}>{recipe.title}</Text>
 
         <Text style={styles.meta}>
-          By: {recipe.username} | {recipe.createdAt?.split("T")[0]}
+          By:{recipe.username} | {
+  recipe.createdAt?.toDate
+    ? recipe.createdAt.toDate().toISOString().split("T")[0]
+    : typeof recipe.createdAt === "string"
+      ? recipe.createdAt.split("T")[0]
+      : "Unknown date"
+}
         </Text>
 
         {recipe.imageURL && (
