@@ -164,7 +164,7 @@ export default function HomeScreen() {
       <TouchableOpacity 
           onPress={() => {
             if (item.ownerId === "themealdb" || item.isFromAPI) {
-              router.push(`../api-recipe/${item.id}`);
+              router.push(`/(modals)/api-recipe/${item.id}`);
             } else {
               
               router.push(`/recipe/${item.id}`);
