@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-nativ
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { db } from "../../firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { Ionicons } from "@expo/vector-icons"; 
 
 export default function EditRecipe() {
   const { id } = useLocalSearchParams();
@@ -50,6 +51,12 @@ export default function EditRecipe() {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+      >
+        <Ionicons name="arrow-back-circle" size={50} color="#4CAF50" />
+      </TouchableOpacity>
       <Text style={styles.label}>Title</Text>
       <TextInput
         value={title}
@@ -93,5 +100,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center"
   },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" }
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+      backButton: {
+    position: "absolute",
+    top: 10,
+    left: 20,
+    zIndex: 10,
+  },
 });
