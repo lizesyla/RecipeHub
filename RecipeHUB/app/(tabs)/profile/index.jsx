@@ -124,12 +124,13 @@ export default function ProfileScreen() {
       )}
 
       {recipes.map((item) => (
-        <TouchableOpacity
-          key={item.id}
-          style={styles.recipeBox}
-          onPress={() => router.push(`/recipe/${item.id}`)}
-        >
-          <Text style={styles.recipeText}>{item.title}</Text>
+        <View key={item.id} style={styles.recipeBox}>
+
+          <TouchableOpacity
+            onPress={() => router.push(`/recipe/${item.id}`)}
+          >
+            <Text style={styles.recipeText}>{item.title}</Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => router.push(`/edit/${item.id}`)}
@@ -137,7 +138,9 @@ export default function ProfileScreen() {
           >
             <Text style={styles.editText}>Edit</Text>
           </TouchableOpacity>
-        </TouchableOpacity>
+
+        </View>
+
       ))}
 
       <Text style={styles.sectionHeader}>Favorite Recipes</Text>
@@ -150,7 +153,13 @@ export default function ProfileScreen() {
         <TouchableOpacity
           key={fav.id}
           style={styles.recipeBox}
-          onPress={() => router.push(`/recipe/${fav.id}`)}
+          onPress={() => {
+            if (fav.ownerId === "themealdb" || fav.isFromAPI) {
+              router.push(`/(tabs)/api-recipe/${fav.id}`);
+            } else {
+              router.push(`/recipe/${fav.id}`);
+            }
+          }}
         >
           <Text style={styles.recipeText}>{fav.title}</Text>
 
