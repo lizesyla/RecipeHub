@@ -31,9 +31,6 @@ export default function ProfileScreen() {
 
   const user = auth.currentUser;
 
-  // -------------------------------------------------------
-  // FETCH MY RECIPES (static)
-  // -------------------------------------------------------
   const loadMyRecipes = async () => {
     if (!user) return;
 
@@ -44,9 +41,6 @@ export default function ProfileScreen() {
     setRecipes(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
   };
 
-  // -------------------------------------------------------
-  // REALTIME FAVORITES LISTENER
-  // -------------------------------------------------------
   const loadFavoritesRealtime = () => {
     if (!user) return;
 
@@ -71,9 +65,6 @@ export default function ProfileScreen() {
     return unsub;
   };
 
-  // -------------------------------------------------------
-  // Load everything when screen focuses
-  // -------------------------------------------------------
   useFocusEffect(
     useCallback(() => {
       setLoading(true);
@@ -92,12 +83,8 @@ export default function ProfileScreen() {
     }, [])
   );
 
-  // ------------------------------------------------------
-  // Remove favorite
-  // ------------------------------------------------------
   const removeFavorite = async (id) => {
     await deleteDoc(doc(db, "users", user.uid, "favorites", id));
-    // nuk duhet me thirr fetchData — realtime e bo vetë
   };
 
   if (!user) {
