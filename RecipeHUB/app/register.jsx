@@ -1,9 +1,10 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, Platform } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, Platform, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { auth, googleProvider } from "../firebase";
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, signOut } from "firebase/auth";
+import * as ImagePicker from "expo-image-picker";
 
 export default function Register() {
   const router = useRouter();
@@ -14,6 +15,52 @@ export default function Register() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [profileImage, setProfileImage] = useState(null);
+
+  const handlePickImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        setError("Permission to access gallery is required");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setProfileImage(result.assets[0].uri);
+      }
+    } catch (e) {
+      setError("Failed to pick image");
+    }
+  };
+
+  const handleTakePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        setError("Permission to access camera is required");
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setProfileImage(result.assets[0].uri);
+      }
+    } catch (e) {
+      setError("Failed to open camera");
+    }
+  };
 
   const validateInputs = () => {
     if (fullName.trim() === "" || email.trim() === "" || password.trim() === "" || confirmPassword.trim() === "") {
@@ -93,6 +140,24 @@ export default function Register() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Sign Up</Text>
+
+      <View style={styles.imageWrapper}>
+        <View style={styles.imagePlaceholder}>
+          {profileImage ? (
+            <Image source={{ uri: profileImage }} style={styles.profileImage} />
+          ) : (
+            <Ionicons name="person-circle-outline" size={80} color="#555" />
+          )}
+        </View>
+        <View style={styles.imageButtonsRow}>
+          <TouchableOpacity style={styles.imageButton} onPress={handlePickImage}>
+            <Text style={styles.imageButtonText}>Gallery</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.imageButton} onPress={handleTakePhoto}>
+            <Text style={styles.imageButtonText}>Camera</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       <TextInput
         style={styles.input}
@@ -205,6 +270,41 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#fff",
     marginBottom: 40
+  },
+  imageWrapper: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  imagePlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#222",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    marginBottom: 10,
+  },
+  profileImage: {
+    width: "100%",
+    height: "100%",
+  },
+  imageButtonsRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  imageButton: {
+    backgroundColor: "#222",
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#4CAF50",
+    marginHorizontal: 4,
+  },
+  imageButtonText: {
+    color: "#fff",
+    fontSize: 12,
   },
   input: {
     width: "80%",
