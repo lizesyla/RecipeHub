@@ -1,8 +1,8 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
-// Config i jot
 const firebaseConfig = {
   apiKey: "AIzaSyDQvRLoEYdpMDRU-wv7nnpdjjom4Aqf_Xk",
   authDomain: "recipehub-57b2c.firebaseapp.com",
@@ -13,15 +13,13 @@ const firebaseConfig = {
   measurementId: "G-Q4RC983CJF"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Këto punojnë në mobile + web
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
 
-// Analytics vetëm në web
 export let analytics = null;
 if (typeof window !== "undefined") {
   const { getAnalytics } = require("firebase/analytics");
