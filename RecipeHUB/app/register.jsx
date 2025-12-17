@@ -2,10 +2,9 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator,
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { auth, googleProvider, storage } from "../firebase";
+import { auth, googleProvider } from "../firebase";
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, signOut } from "firebase/auth";
 import * as ImagePicker from "expo-image-picker";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export default function Register() {
   const router = useRouter();
@@ -98,24 +97,10 @@ export default function Register() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
-      let photoURL = null;
-
-      if (profileImage) {
-        try {
-          const response = await fetch(profileImage);
-          const blob = await response.blob();
-
-          const imageRef = ref(storage, `profileImages/${userCredential.user.uid}.jpg`);
-          await uploadBytes(imageRef, blob);
-          photoURL = await getDownloadURL(imageRef);
-        } catch (uploadError) {
-          console.log("Error uploading profile image:", uploadError);
-        }
-      }
-
+      // Ruaj vetëm URL-n lokale të fotos (pa Firebase Storage)
       await updateProfile(userCredential.user, {
         displayName: fullName,
-        ...(photoURL ? { photoURL } : {}),
+        ...(profileImage ? { photoURL: profileImage } : {}),
       });
       await signOut(auth);
       setLoading(false);
