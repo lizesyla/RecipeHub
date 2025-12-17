@@ -81,7 +81,7 @@ export default function EditRecipe() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#111", padding: 20 },
-  label: { color: "#fff", marginTop: 10, fontSize: 16 },
+  label: { color: "#fff", marginTop: 50, fontSize: 16 },
   input: {
     backgroundColor: "#222",
     color: "#fff",
@@ -100,8 +100,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center"
   },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
-      backButton: {
+  center: { 
+    flex: 1, 
+    justifyContent: "center", 
+    alignItems: "center" 
+  },
+    backButton: {
     position: "absolute",
     top: 10,
     left: 20,
