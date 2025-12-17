@@ -144,102 +144,110 @@ export default function Register() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sign Up</Text>
+      <View style={styles.card}>
+        <Text style={styles.title}>Sign Up</Text>
 
-      <View style={styles.imageWrapper}>
-        <View style={styles.imagePlaceholder}>
-          {profileImage ? (
-            <Image source={{ uri: profileImage }} style={styles.profileImage} />
+        <View style={styles.imageWrapper}>
+          <View style={styles.imagePlaceholder}>
+            {profileImage ? (
+              <Image source={{ uri: profileImage }} style={styles.profileImage} />
+            ) : (
+              <Ionicons name="person-circle-outline" size={80} color="#555" />
+            )}
+          </View>
+          <View style={styles.imageButtonsRow}>
+            <TouchableOpacity style={styles.imageButton} onPress={handlePickImage}>
+              <Text style={styles.imageButtonText}>Gallery</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.imageButton} onPress={handleTakePhoto}>
+              <Text style={styles.imageButtonText}>Camera</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Full Name"
+          placeholderTextColor="#777"
+          value={fullName}
+          onChangeText={(text) => {
+            setFullName(text);
+            setError("");
+          }}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          placeholderTextColor="#777"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+          value={email}
+          onChangeText={(text) => {
+            setEmail(text);
+            setError("");
+          }}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          secureTextEntry
+          placeholderTextColor="#777"
+          value={password}
+          onChangeText={(text) => {
+            setPassword(text);
+            setError("");
+          }}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Confirm Password"
+          secureTextEntry
+          placeholderTextColor="#777"
+          value={confirmPassword}
+          onChangeText={(text) => {
+            setConfirmPassword(text);
+            setError("");
+          }}
+        />
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+        <TouchableOpacity
+          style={styles.primaryButton}
+          onPress={handleSignUp}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="#111" />
           ) : (
-            <Ionicons name="person-circle-outline" size={80} color="#555" />
+            <>
+              <Ionicons name="person-add-outline" size={20} color="#111" style={styles.primaryIcon} />
+              <Text style={styles.primaryText}>Create Account</Text>
+            </>
           )}
-        </View>
-        <View style={styles.imageButtonsRow}>
-          <TouchableOpacity style={styles.imageButton} onPress={handlePickImage}>
-            <Text style={styles.imageButtonText}>Gallery</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.imageButton} onPress={handleTakePhoto}>
-            <Text style={styles.imageButtonText}>Camera</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Full Name"
-        placeholderTextColor="#aaa"
-        value={fullName}
-        onChangeText={(text) => {
-          setFullName(text);
-          setError("");
-        }}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#aaa"
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoCorrect={false}
-        value={email}
-        onChangeText={(text) => {
-          setEmail(text);
-          setError("");
-        }}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        placeholderTextColor="#aaa"
-        value={password}
-        onChangeText={(text) => {
-          setPassword(text);
-          setError("");
-        }}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm Password"
-        secureTextEntry
-        placeholderTextColor="#aaa"
-        value={confirmPassword}
-        onChangeText={(text) => {
-          setConfirmPassword(text);
-          setError("");
-        }}
-      />
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-      <TouchableOpacity
-        style={styles.arrowButton}
-        onPress={handleSignUp}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator size="large" color="#4CAF50" />
-        ) : (
-          <Ionicons name="arrow-forward-circle" size={60} color="#4CAF50" />
-        )}
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.googleButton}
-        onPress={handleGoogleRegister}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator size="small" color="#4CAF50" />
-        ) : (
-          <Text style={styles.googleText}>Sign up with Google</Text>
-        )}
-      </TouchableOpacity>
-
-      <View style={styles.loginView}>
-        <Text style={styles.accountText}>Already have an account?</Text>
-        <TouchableOpacity onPress={() => router.push("/")}>
-          <Text style={styles.linkText}> Log In</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.googleButton}
+          onPress={handleGoogleRegister}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="#4CAF50" />
+          ) : (
+            <>
+              <Ionicons name="logo-google" size={20} color="#4CAF50" style={styles.googleIcon} />
+              <Text style={styles.googleText}>Sign up with Google</Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        <View style={styles.loginView}>
+          <Text style={styles.accountText}>Already have an account?</Text>
+          <TouchableOpacity onPress={() => router.push("/")}>
+            <Text style={styles.linkText}> Log In</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <Modal
@@ -266,15 +274,30 @@ export default function Register() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#111",
+    backgroundColor: "#050505",
     justifyContent: "center",
     alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  card: {
+    width: "100%",
+    maxWidth: 420,
+    backgroundColor: "#161616",
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 8,
   },
   title: {
     fontSize: 26,
-    fontWeight: "bold",
+    fontWeight: "700",
     color: "#fff",
-    marginBottom: 40
+    marginBottom: 20,
+    textAlign: "center",
   },
   imageWrapper: {
     alignItems: "center",
@@ -284,11 +307,13 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: "#222",
+    backgroundColor: "#1f1f1f",
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#2c2c2c",
   },
   profileImage: {
     width: "100%",
@@ -299,7 +324,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   imageButton: {
-    backgroundColor: "#222",
+    backgroundColor: "#1f1f1f",
     paddingVertical: 6,
     paddingHorizontal: 14,
     borderRadius: 20,
@@ -312,40 +337,48 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   input: {
-    width: "80%",
-    backgroundColor: "#222",
+    width: "100%",
+    backgroundColor: "#1f1f1f",
     color: "#fff",
-    padding: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     borderRadius: 10,
-    marginVertical: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#2c2c2c",
+    fontSize: 15,
   },
-  arrowButton: {
-    marginTop: 30
-  },
-  linkText: {
-    color: "#4CAF50",
-    fontSize: 16,
-    textAlign: "center",
-  },
-  loginView: {
+  primaryButton: {
+    marginTop: 18,
+    backgroundColor: "#4CAF50",
+    paddingVertical: 12,
+    borderRadius: 999,
     flexDirection: "row",
-    marginTop: 20,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  accountText: {
-    color: "#FFFFFF",
+  primaryIcon: {
+    marginRight: 8,
+  },
+  primaryText: {
+    color: "#111",
     fontSize: 16,
-    textAlign: "center",
+    fontWeight: "600",
   },
   googleButton: {
-    marginTop: 20,
-    backgroundColor: "#222",
-    padding: 12,
-    borderRadius: 10,
-    width: "80%",
+    marginTop: 12,
+    backgroundColor: "#111",
+    paddingVertical: 10,
+    borderRadius: 999,
+    width: "100%",
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "#4CAF50",
+    borderColor: "#2e7d32",
+  },
+  googleIcon: {
+    marginRight: 10,
   },
   googleText: {
     color: "#fff",
@@ -357,14 +390,16 @@ const styles = StyleSheet.create({
     color: "#4CAF50",
     fontSize: 16,
     textAlign: "center",
+    fontWeight: "500",
   },
   loginView: {
     flexDirection: "row",
     marginTop: 20,
+    justifyContent: "center",
   },
   accountText: {
-    color: "#FFFFFF",
-    fontSize: 16,
+    color: "#AAAAAA",
+    fontSize: 15,
     textAlign: "center",
   },
   errorText: {
@@ -380,7 +415,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
-    backgroundColor: "#222",
+    backgroundColor: "#161616",
     borderRadius: 20,
     padding: 30,
     alignItems: "center",
