@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -86,6 +86,23 @@ export default function ProfileScreen() {
   const removeFavorite = async (id) => {
     await deleteDoc(doc(db, "users", user.uid, "favorites", id));
   };
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        setUserData(docSnap.data());
+      }
+
+      setLoading(false);
+    };
+
+    fetchUser();
+  }, []);
 
   if (!user) {
     return (
@@ -104,18 +121,26 @@ export default function ProfileScreen() {
   }
 
   return (
+    
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
-      
-      <View style={styles.profileHeader}>
-        <Image
-          source={{
-            uri: userData.photo || "https://cdn-icons-png.flaticon.com/512/149/149071.png"
-          }}
-          style={styles.avatar}
-        />
-        <Text style={styles.name}>{userData.name}</Text>
-        <Text style={styles.email}>{userData.email}</Text>
-      </View>
+       <View style={styles.profileHeader}>
+  <Image
+    source={{
+      uri: userData?.photoBase64
+        ? `data:image/jpeg;base64,${userData.photoBase64}`
+        : userData?.photo ||
+          "https://cdn-icons-png.flaticon.com/512/149/149071.png",
+    }}
+    style={styles.avatar}
+  />
+
+  <Text style={styles.name}>
+    {userData?.fullName || userData?.name}
+  </Text>
+
+  <Text style={styles.email}>{userData?.email}</Text>
+</View>
+
 
       <Text style={styles.sectionHeader}>My Recipes</Text>
 

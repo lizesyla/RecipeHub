@@ -5,6 +5,9 @@ import { useState } from "react";
 import { auth, googleProvider } from "../firebase";
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, signOut } from "firebase/auth";
 import * as ImagePicker from "expo-image-picker";
+import { db } from "../firebase";
+import { doc, setDoc } from "firebase/firestore";
+
 
 export default function Register() {
   const router = useRouter();
@@ -17,6 +20,7 @@ export default function Register() {
   const [modalVisible, setModalVisible] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
 
+  
   const handlePickImage = async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -24,21 +28,23 @@ export default function Register() {
         setError("Permission to access gallery is required");
         return;
       }
-
+  
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.7,
+        quality: 0.3,
+        base64: true,
       });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setProfileImage(result.assets[0].uri);
+  
+      if (!result.canceled) {
+        setProfileImage(result.assets[0].base64);
       }
-    } catch (e) {
+    } catch {
       setError("Failed to pick image");
     }
   };
+  
 
   const handleTakePhoto = async () => {
     try {
@@ -47,20 +53,22 @@ export default function Register() {
         setError("Permission to access camera is required");
         return;
       }
-
+  
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.7,
+        quality: 0.3,
+        base64: true,
       });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setProfileImage(result.assets[0].uri);
+  
+      if (!result.canceled) {
+        setProfileImage(result.assets[0].base64);
       }
-    } catch (e) {
+    } catch {
       setError("Failed to open camera");
     }
   };
+  
 
   const validateInputs = () => {
     if (fullName.trim() === "" || email.trim() === "" || password.trim() === "" || confirmPassword.trim() === "") {
@@ -90,30 +98,46 @@ export default function Register() {
 
   const handleSignUp = async () => {
     if (!validateInputs()) return;
-    
+  
     setLoading(true);
     setError("");
-    
+  
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-
-      // Ruaj vetëm URL-n lokale të fotos (pa Firebase Storage)
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+  
+      const uid = userCredential.user.uid;
+  
       await updateProfile(userCredential.user, {
         displayName: fullName,
-        ...(profileImage ? { photoURL: profileImage } : {}),
       });
+  
+      await setDoc(doc(db, "users", uid), {
+        fullName,
+        email,
+        photo: profileImage
+          ? `data:image/jpeg;base64,${profileImage}`
+          : null,
+        createdAt: new Date(),
+      });
+      
+  
       await signOut(auth);
-      setLoading(false);
       setModalVisible(true);
     } catch (error) {
-      setLoading(false);
       if (error.code === "auth/email-already-in-use") {
         setError("Email already exists");
       } else {
         setError(error.message);
       }
+    } finally {
+      setLoading(false);
     }
   };
+  
 
   const handleModalClose = () => {
     setModalVisible(false);
@@ -149,9 +173,12 @@ export default function Register() {
 
         <View style={styles.imageWrapper}>
           <View style={styles.imagePlaceholder}>
-            {profileImage ? (
-              <Image source={{ uri: profileImage }} style={styles.profileImage} />
-            ) : (
+          {profileImage ? (
+          <Image
+            source={{ uri: `data:image/jpeg;base64,${profileImage}` }}
+            style={styles.profileImage}
+          />
+        ) : (
               <Ionicons name="person-circle-outline" size={80} color="#555" />
             )}
           </View>
@@ -447,4 +474,5 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+
 

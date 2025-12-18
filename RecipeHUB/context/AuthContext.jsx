@@ -1,33 +1,30 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
 import { onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
-import { auth } from "../firebase";
-import { useRouter } from "expo-router";
+import { createContext, useContext, useEffect, useState } from "react";
+import { auth, db } from "../firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { router } from "expo-router";
 
-const AuthContext = createContext({});
+const AuthContext = createContext();
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
+export const useAuth = () => useContext(AuthContext);
 
-export function AuthProvider({ children }) {
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        try {
-          await firebaseUser.reload();
-        } catch (e) {
-          console.log("Error reloading user:", e);
-        }
+        const ref = doc(db, "users", firebaseUser.uid);
+        const snap = await getDoc(ref);
+        const firestoreData = snap.exists() ? snap.data() : {};
 
         setUser({
           uid: firebaseUser.uid,
           email: firebaseUser.email,
           displayName: firebaseUser.displayName,
           photoURL: firebaseUser.photoURL,
+          ...firestoreData,
         });
       } else {
         setUser(null);
@@ -54,5 +51,4 @@ export function AuthProvider({ children }) {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
+};
