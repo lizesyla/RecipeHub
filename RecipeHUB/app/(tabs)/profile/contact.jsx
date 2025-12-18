@@ -1,12 +1,32 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Animated } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+  Animated,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRef, useEffect } from "react";
 import { useRouter } from "expo-router";
+import { TextInput, Platform, Alert } from "react-native";
+import * as Notifications from "expo-notifications";
+import { useState, useCallback } from "react";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function Contact() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const router = useRouter();
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -16,17 +36,58 @@ export default function Contact() {
     }).start();
   }, []);
 
+  useEffect(() => {
+    const requestPermission = async () => {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Notification permission not granted");
+      }
+    };
+
+    requestPermission();
+
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const sendMessage = useCallback(async () => {
+    if (!message.trim()) {
+      if (Platform.OS === "web") {
+        alert("Ju lutemi plotësojeni fushën e kërkuar.");
+      } else {
+        Alert.alert("Error", "Ju lutemi plotësojeni fushën e kërkuar.");
+      }
+      return;
+    }
+
+    if (Platform.OS === "web") {
+      alert("Mesazhi u dërgua me sukses! Mbesim në kontakt. 🌿");
+    } else {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "Message Sent",
+          body: "Mesazhi u dërgua me sukses! Mbesim në kontakt. 🌿",
+        },
+        trigger: null,
+      });
+    }
+
+    setMessage("");
+  }, [message]);
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => router.back()}
-      >
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Ionicons name="arrow-back-circle" size={50} color="#4CAF50" />
       </TouchableOpacity>
 
       <ScrollView contentContainerStyle={styles.container}>
-        <Animated.View style={{ opacity: fadeAnim, alignItems: "center", width: '100%' }}>
+        <Animated.View
+          style={{ opacity: fadeAnim, alignItems: "center", width: "100%" }}
+        >
           <Image
             source={require("../../../assets/logo.png")}
             style={styles.logo}
@@ -53,9 +114,23 @@ export default function Contact() {
             <Text style={styles.contactText}>Prishtina, Kosovo</Text>
           </View>
 
-          <TouchableOpacity style={styles.button}>
+          <TextInput
+            style={styles.input}
+            placeholder="Write your message here..."
+            placeholderTextColor="#888"
+            value={message}
+            onChangeText={setMessage}
+            multiline
+          />
+
+          <TouchableOpacity style={styles.button} onPress={sendMessage}>
             <Text style={styles.buttonText}>Send Message</Text>
-            <Ionicons name="chatbox-ellipses-outline" size={20} color="#fff" style={{ marginLeft: 10 }} />
+            <Ionicons
+              name="chatbox-ellipses-outline"
+              size={20}
+              color="#fff"
+              style={{ marginLeft: 10 }}
+            />
           </TouchableOpacity>
         </Animated.View>
       </ScrollView>
@@ -120,5 +195,16 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  input: {
+    width: "95%",
+    backgroundColor: "#222",
+    color: "#fff",
+    padding: 14,
+    borderRadius: 10,
+    fontSize: 16,
+    marginVertical: 12,
+    minHeight: 80,
+    textAlignVertical: "top",
   },
 });
