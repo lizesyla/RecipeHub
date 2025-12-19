@@ -77,6 +77,15 @@ export default function SearchScreen() {
         value={searchText}
         onChangeText={setSearchText}
       />
+      {searchText.length > 0 && (
+        <TouchableOpacity 
+          onPress={() => { setSearchText(""); setResults([]); }}
+          style={styles.clearButton}
+        >
+          <Ionicons name="close-circle" size={20} color="#4CAF50" />
+        </TouchableOpacity>
+      )}
+
     </View>
     {loading && <ActivityIndicator color="#4CAF50" />}
   </View>
@@ -152,4 +161,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 10,
   },
+  clearButton: {
+    padding: 5, 
+    marginLeft: 5,
+  }
 });
