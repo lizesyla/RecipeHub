@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { View, Text, TextInput, StyleSheet, SafeAreaView, StatusBar, Platform, FlatList, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, StyleSheet, SafeAreaView, StatusBar, Platform, FlatList, ActivityIndicator, Alert  } from "react-native";
 import * as Font from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
 import { collection, query, where, getDocs } from "firebase/firestore";
@@ -8,6 +8,13 @@ import { TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 import RecipeCard from '../../components/RecipeCard';
 
+const showAlert = (title, message) => {
+  if (Platform.OS === 'web') {
+    alert(`${title}: ${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+};
 export default function SearchScreen() {
   
   useEffect(() => {
@@ -28,14 +35,16 @@ export default function SearchScreen() {
     }
     setLoading(true);
     try {
+      if (Platform.OS === 'web' && !navigator.onLine) {throw new Error("Offline");}
       const q = query(
-        collection(db, "AllRecipes"),
+        collection(db, "AllRecipes"), 
         where("keywords", "array-contains", searchText.toLowerCase())
       );
       const snapshot = await getDocs(q);
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setResults(data);
     } catch (error) {
+      showAlert("Error", "Could not fetch recipes. Check your connection.");
       console.log("Search error:", error);
     } finally {
       setLoading(false);
@@ -43,8 +52,11 @@ export default function SearchScreen() {
   }, [searchText]);
 
   useEffect(() => {
-    handleSearch();
-  }, [searchText]);
+    const delayDebounceFn = setTimeout(() => {
+    handleSearch(searchText);
+  }, 500);
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchText, handleSearch]);
 
   const handleNavigate = useCallback((id) => {
     router.push(`/recipe/${id}`);
