@@ -2,10 +2,12 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator 
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { auth, googleProvider } from "../firebase";
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { auth } from "../firebase";
+import { signInWithEmailAndPassword, GoogleAuthProvider,
+  signInWithPopup } from "firebase/auth";
 import { sendPasswordResetEmail } from "firebase/auth";
 
+const googleProvider = new GoogleAuthProvider();
 
 export default function Login() {
   const router = useRouter();
@@ -54,20 +56,17 @@ export default function Login() {
   const handleGoogleLogin = async () => {
     setLoading(true);
     setError("");
-    
+  
     try {
       await signInWithPopup(auth, googleProvider);
       setLoading(false);
       router.replace("/(tabs)/home");
     } catch (error) {
       setLoading(false);
-      if (error.code === "auth/invalid-credential") {
-        setError("Incorrect email or password");
-      } else {
-        setError(error.message);
-      }
+      setError(error.message);
     }
   };
+  
   const handleForgotPassword = async () => {
     if (email.trim() === "") {
       setError("Please enter your email to reset password");
