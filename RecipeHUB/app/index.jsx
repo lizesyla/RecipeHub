@@ -1,11 +1,13 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
 import { auth } from "../firebase";
 import { signInWithEmailAndPassword, GoogleAuthProvider,
   signInWithPopup } from "firebase/auth";
 import { sendPasswordResetEmail } from "firebase/auth";
+import { Modal, Animated } from "react-native";
+import { useRef, useState, useEffect } from "react";
+
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -15,6 +17,10 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+const [modalVisible, setModalVisible] = useState(false);
+const [modalMessage, setModalMessage] = useState("");
+const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const validateInputs = () => {
     if (email.trim() === "" || password.trim() === "") {
@@ -32,7 +38,23 @@ export default function Login() {
     return true;
   }
 
+  const showModal = (message) => {
+    setModalMessage(message);
+    setModalVisible(true);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
 
+  const hideModal = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => setModalVisible(false));
+  };
   const handleEmailLogin = async () => {
     if (!validateInputs()) return;
     
@@ -69,20 +91,20 @@ export default function Login() {
   
   const handleForgotPassword = async () => {
     if (email.trim() === "") {
-      setError("Please enter your email to reset password");
+      showModal("Please enter your email to reset password");
       return;
     }
-  
+
     setLoading(true);
     setError("");
-  
+
     try {
       await sendPasswordResetEmail(auth, email);
-      setError("Password reset email has been sent!");
+      showModal("Password reset email has been sent!");
     } catch (error) {
-      setError("Failed to send reset email");
+      showModal("Failed to send reset email");
     }
-  
+
     setLoading(false);
   };
 
@@ -125,6 +147,7 @@ export default function Login() {
         <TouchableOpacity
           style={styles.primaryButton}
           onPress={handleEmailLogin}
+          activeOpacity={0.7}
           disabled={loading}
         >
           {loading ? (
@@ -159,8 +182,50 @@ export default function Login() {
           </TouchableOpacity>
         </View>
       </View>
+      <Modal
+        transparent
+        visible={modalVisible}
+        animationType="fade"
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+        >
+          <View
+            style={{
+              width: 300,
+              padding: 20,
+              backgroundColor: "white",
+              borderRadius: 12,
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ textAlign: "center", fontSize: 16 }}>
+              {modalMessage}
+            </Text>
+            <TouchableOpacity
+              onPress={hideModal}
+              style={{
+                marginTop: 20,
+                paddingHorizontal: 20,
+                paddingVertical: 10,
+                backgroundColor: "#4CAF50",
+                borderRadius: 8,
+              }}
+            >
+              <Text style={{ color: "white", fontWeight: "bold" }}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
+    
   );
+  
 }
 
 
