@@ -2,7 +2,7 @@
   "expo": {
     "name": "RecipeHUB",
     "slug": "RecipeHUB",
-         "scheme": "app-scheme",
+    "scheme": "app-scheme",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -27,7 +27,24 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification_icon.png",
+          "color": "#ff69b4",
+          "defaultChannel": "default",
+          "sounds": [
+            "./assets/notification_sound.wav"
+          ],
+          "enableBackgroundRemoteNotifications": false
+        }
+      ]
     ]
   }
 }
