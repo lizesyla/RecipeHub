@@ -1,17 +1,16 @@
-
 import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   StatusBar,
   Platform,
   TouchableOpacity,
   ActivityIndicator,
   Image,
   Alert,
-  Animated
+  Animated,
+  FlatList
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -53,6 +52,110 @@ const FadeButton = ({ onPress, children, style }) => {
     </AnimatedTouchable>
   );
 };
+
+const RecipeCard = React.memo(({ 
+  item, 
+  favorites, 
+  currentUser, 
+  onToggleFavorite, 
+  onDelete, 
+  onPressRecipe 
+}) => {
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+  
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const formattedDate = React.useMemo(() => {
+    if (!item.createdAt) return "";
+    if (typeof item.createdAt === "string") {
+      return item.createdAt.split("T")[0];
+    } else if (item.createdAt.toDate) {
+      return item.createdAt.toDate().toISOString().split("T")[0];
+    }
+    return "";
+  }, [item.createdAt]);
+
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.95,
+      friction: 3,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 3,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleToggleFavorite = () => {
+    onToggleFavorite(item);
+  };
+
+  const handleDelete = () => {
+    onDelete(item.id, item.ownerId);
+  };
+
+  const handlePressRecipe = () => {
+    onPressRecipe(item.id);
+  };
+
+  return (
+    <Animated.View style={[styles.postContainer, { opacity: fadeAnim }]}>
+      <Animated.View 
+        style={{ transform: [{ scale: scaleAnim }] }}
+        onTouchStart={handlePressIn}
+        onTouchEnd={handlePressOut}
+      >
+        <View style={styles.userRow}>
+          <Ionicons name="person-circle-outline" size={38} color="#4CAF50" />
+          <View style={{ marginLeft: 8 }}>
+            <Text style={styles.username}>{item.ownerEmail}</Text>
+            {formattedDate !== "" && (
+              <Text style={styles.date}>{formattedDate}</Text>
+            )}
+          </View>
+        </View>
+
+        <FadeButton onPress={handlePressRecipe}>
+          <Image source={{ uri: item.imageURL }} style={styles.recipeImage} />
+        </FadeButton>
+
+        <FadeButton onPress={handlePressRecipe}>
+          <Text style={styles.recipeTitle}>{item.title}</Text>
+        </FadeButton>
+
+        <View style={styles.actionRow}>
+          <FadeButton onPress={handleToggleFavorite}>
+            <Ionicons
+              name={favorites.includes(item.id) ? "heart" : "heart-outline"}
+              size={28}
+              color={favorites.includes(item.id) ? "red" : "#fff"}
+            />
+          </FadeButton>
+
+          {item.ownerId === currentUser?.uid && (
+            <FadeButton onPress={handleDelete}>
+              <Ionicons name="trash-outline" size={28} color="red" />
+            </FadeButton>
+          )}
+        </View>
+      </Animated.View>
+    </Animated.View>
+  );
+});
+
 export default function HomeScreen() {
   const router = useRouter();
   const user = auth.currentUser;
@@ -61,6 +164,8 @@ export default function HomeScreen() {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [recipeToDelete, setRecipeToDelete] = useState(null);
 
   useEffect(() => {
     const unsubRecipes = loadRecipesRealtime();
@@ -72,7 +177,6 @@ export default function HomeScreen() {
     };
   }, []);
 
-  
   const loadRecipesRealtime = () => {
     const ref = collection(db, "AllRecipes");
     const q = query(ref, orderBy("createdAt", "desc"));
@@ -92,102 +196,6 @@ export default function HomeScreen() {
 
     return unsubscribe;
   };
-    const RecipeCard = ({ item }) => {
-    const id = item.id;
-    const scaleAnim = React.useRef(new Animated.Value(1)).current;
-    const fadeAnim = React.useRef(new Animated.Value(0)).current;
-
-    React.useEffect(() => {
-      // Animacion fade-in kur komponenti mountohet
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    }, []);
-
-    let formattedDate = "";
-    if (item.createdAt) {
-      if (typeof item.createdAt === "string") {
-        formattedDate = item.createdAt.split("T")[0];
-      } else if (item.createdAt.toDate) {
-        formattedDate = item.createdAt.toDate().toISOString().split("T")[0];
-      }
-    }
-
-    const handlePressIn = () => {
-      Animated.spring(scaleAnim, {
-        toValue: 0.95,
-        friction: 3,
-        useNativeDriver: true,
-      }).start();
-    };
-
-    const handlePressOut = () => {
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 3,
-        useNativeDriver: true,
-      }).start();
-    };
-
-    const handleToggleFavorite = () => {
-      toggleFavorite(item);
-    };
-
-    const handleDelete = () => {
-      deleteRecipe(item.id, item.ownerId);
-    };
-
-    const handlePressRecipe = () => {
-      router.push(`/recipe/${id}`);
-    };
-
-    return (
-      <Animated.View style={[styles.postContainer, { opacity: fadeAnim }]}>
-        <Animated.View 
-          style={{ transform: [{ scale: scaleAnim }] }}
-          onTouchStart={handlePressIn}
-          onTouchEnd={handlePressOut}
-        >
-          <View style={styles.userRow}>
-            <Ionicons name="person-circle-outline" size={38} color="#4CAF50" />
-            <View style={{ marginLeft: 8 }}>
-              <Text style={styles.username}>{item.ownerEmail}</Text>
-              {formattedDate !== "" && (
-                <Text style={styles.date}>{formattedDate}</Text>
-              )}
-            </View>
-          </View>
-
-          <FadeButton onPress={handlePressRecipe}>
-            <Image source={{ uri: item.imageURL }} style={styles.recipeImage} />
-          </FadeButton>
-
-          <FadeButton onPress={handlePressRecipe}>
-            <Text style={styles.recipeTitle}>{item.title}</Text>
-          </FadeButton>
-
-          <View style={styles.actionRow}>
-            <FadeButton onPress={handleToggleFavorite}>
-              <Ionicons
-                name={favorites.includes(item.id) ? "heart" : "heart-outline"}
-                size={28}
-                color={favorites.includes(item.id) ? "red" : "#fff"}
-              />
-            </FadeButton>
-
-            {item.ownerId === user?.uid && (
-              <FadeButton onPress={handleDelete}>
-                <Ionicons name="trash-outline" size={28} color="red" />
-              </FadeButton>
-            )}
-          </View>
-        </Animated.View>
-      </Animated.View>
-    );
-  };
-
 
   const loadFavoritesRealtime = () => {
     if (!user) return;
@@ -202,8 +210,7 @@ export default function HomeScreen() {
     return unsub;
   };
 
-  
-  const toggleFavorite = async (item) => {
+  const toggleFavorite = (item) => {
     if (!user) return;
 
     const favDoc = doc(db, "users", user.uid, "favorites", item.id);
@@ -223,77 +230,85 @@ export default function HomeScreen() {
     router.push("/more-recipes");
   };
 
-  
-  const deleteRecipe = async (id, ownerId) => {
-    const currentUser = auth.currentUser;
-    if (!currentUser) return;
+  const onRecipePress = (id) => {
+    router.push(`/recipe/${id}`);
+  };
 
-    if (ownerId !== currentUser.uid) {
+  const showDeleteConfirmation = (id, ownerId) => {
+    setRecipeToDelete({ id, ownerId });
+    setDeleteModalVisible(true);
+  };
+
+  const handleDeleteRecipe = async () => {
+    if (!recipeToDelete || !user) return;
+
+    const { id, ownerId } = recipeToDelete;
+
+    if (ownerId !== user.uid) {
       Alert.alert("Error", "You can only delete your own recipes.");
       return;
     }
 
-   
     setRecipes(prev => prev.filter(item => item.id !== id));
 
     try {
       await deleteDoc(doc(db, "AllRecipes", id));
+      setDeleteModalVisible(false);
+      setRecipeToDelete(null);
     } catch (err) {
       console.log(err);
       Alert.alert("Error", "Failed to delete recipe.");
-      
       loadRecipesRealtime();
     }
   };
 
-  
-  const RecipeCard = ({ item }) => {
-    const id = item.id;
+  const renderHeader = () => (
+    <View style={styles.headerContainer}>
+      <View style={{ width: 100 }} /> 
+      <Text style={styles.header}>Feed</Text>
+      <FadeButton onPress={onMoreRecipesPress} style={styles.moreButton}>
+        <Text style={styles.moreButtonText}>More Recipes</Text>
+      </FadeButton>
+    </View>
+  );
 
-    let formattedDate = "";
-    if (item.createdAt) {
-      if (typeof item.createdAt === "string") {
-        formattedDate = item.createdAt.split("T")[0];
-      } else if (item.createdAt.toDate) {
-        formattedDate = item.createdAt.toDate().toISOString().split("T")[0];
-      }
+  const renderItem = ({ item }) => (
+    <RecipeCard
+      item={item}
+      favorites={favorites}
+      currentUser={user}
+      onToggleFavorite={toggleFavorite}
+      onDelete={showDeleteConfirmation}
+      onPressRecipe={onRecipePress}
+    />
+  );
+
+  const renderEmptyComponent = () => {
+    if (loading) {
+      return (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#4CAF50" />
+        </View>
+      );
     }
-
-    return (
-      <View style={styles.postContainer}>
-        <View style={styles.userRow}>
-          <Ionicons name="person-circle-outline" size={38} color="#4CAF50" />
-          <View style={{ marginLeft: 8 }}>
-            <Text style={styles.username}>{item.ownerEmail}</Text>
-            {formattedDate !== "" && (
-              <Text style={styles.date}>{formattedDate}</Text>
-            )}
-          </View>
+    
+    if (error) {
+      return (
+        <View style={styles.centerContainer}>
+          <Text style={styles.error}>{error}</Text>
         </View>
-
-        <Image source={{ uri: item.imageURL }} style={styles.recipeImage} />
-
-        <TouchableOpacity onPress={() => router.push(`/recipe/${id}`)}>
-          <Text style={styles.recipeTitle}>{item.title}</Text>
-        </TouchableOpacity>
-
-        <View style={styles.actionRow}>
-          <TouchableOpacity onPress={() => toggleFavorite(item)}>
-            <Ionicons
-              name={favorites.includes(item.id) ? "heart" : "heart-outline"}
-              size={28}
-              color={favorites.includes(item.id) ? "red" : "#fff"}
-            />
-          </TouchableOpacity>
-
-          {item.ownerId === user?.uid && (
-            <TouchableOpacity onPress={() => deleteRecipe(item.id, item.ownerId)}>
-              <Ionicons name="trash-outline" size={28} color="red" />
-            </TouchableOpacity>
-          )}
+      );
+    }
+    
+    if (recipes.length === 0) {
+      return (
+        <View style={styles.centerContainer}>
+          <Text style={styles.noRecipes}>No recipes yet.</Text>
         </View>
-      </View>
-    );
+      );
+    }
+    
+    return null;
   };
 
   return (
@@ -304,41 +319,48 @@ export default function HomeScreen() {
         translucent={Platform.OS === "android"}
       />
 
-      <ScrollView
-        style={[styles.container, {
-          paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0
-        }]}
-        contentContainerStyle={{ padding: 20 }}
-      >
-      <View style={styles.headerContainer}>
-        <View style={{ width: 100 }} /> 
-        <Text style={styles.header}>Feed</Text>
-        <FadeButton onPress={onMoreRecipesPress} style={styles.moreButton}>
-       <Text style={styles.moreButtonText}>More Recipes</Text>
-       </FadeButton>
-
-
-        {loading && <ActivityIndicator size="large" color="#4CAF50" />}
-        {error !== "" && <Text style={styles.error}>{error}</Text>}
-        {!loading && recipes.length === 0 && <Text style={styles.noRecipes}>No recipes yet.</Text>}
-
-        {recipes.map(item => <RecipeCard key={item.id} item={item} />)}
-      </ScrollView>
+      <FlatList
+        data={recipes}
+        renderItem={renderItem}
+        keyExtractor={item => item.id}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={renderEmptyComponent}
+        contentContainerStyle={[
+          styles.container,
+          { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }
+        ]}
+        showsVerticalScrollIndicator={false}
+        initialNumToRender={5}
+        maxToRenderPerBatch={10}
+        windowSize={10}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { 
-    flex: 1, 
-    backgroundColor: "#111" 
+    flexGrow: 1,
+    backgroundColor: "#111",
+    paddingHorizontal: 20,
+    paddingBottom: 20
   },
+  
+  centerContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    minHeight: 200
+  },
+
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 20,
+    marginTop: 10
   },
+
   header: {
     fontSize: 28,
     fontWeight: "bold",
@@ -346,15 +368,27 @@ const styles = StyleSheet.create({
     textAlign: "center",
     flex: 1
   },
+
+  error: { 
+    color: "red", 
+    textAlign: "center", 
+    fontSize: 16,
+    marginTop: 20 
+  },
   
-  error: { color: "red", textAlign: "center", marginTop: 20 },
-  noRecipes: { color: "#aaa", textAlign: "center", marginTop: 20 },
+  noRecipes: { 
+    color: "#aaa", 
+    textAlign: "center", 
+    fontSize: 18,
+    marginTop: 20 
+  },
 
   postContainer: {
     backgroundColor: "#1a1a1a",
     marginBottom: 25,
     borderRadius: 12,
-    paddingBottom: 15
+    paddingBottom: 15,
+    overflow: "hidden"
   },
 
   userRow: {
@@ -363,8 +397,16 @@ const styles = StyleSheet.create({
     padding: 12
   },
 
-  username: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  date: { color: "#aaa", fontSize: 12 },
+  username: { 
+    color: "#fff", 
+    fontSize: 16, 
+    fontWeight: "bold" 
+  },
+  
+  date: { 
+    color: "#aaa", 
+    fontSize: 12 
+  },
 
   recipeImage: {
     width: "100%",
@@ -378,7 +420,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     marginTop: 12,
-    paddingHorizontal: 12
+    paddingHorizontal: 12,
+    paddingVertical: 8
   },
 
   actionRow: {
@@ -387,23 +430,17 @@ const styles = StyleSheet.create({
     marginTop: 14,
     paddingHorizontal: 12
   },
-  headerContainer: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: 20,
-},
 
-moreButton: {
-  paddingHorizontal: 10,
-  paddingVertical: 6,
-  backgroundColor: "#4CAF50",
-  borderRadius: 6,
-},
-moreButtonText: {
-  color: "#fff",
-  fontWeight: "bold",
-  fontSize: 16,
-}
-
+  moreButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: "#4CAF50",
+    borderRadius: 8,
+  },
+  
+  moreButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 14,
+  }
 });
