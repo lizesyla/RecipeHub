@@ -10,7 +10,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Image,
-  Alert
+  Alert,
+  Animated
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,6 +20,39 @@ import { useRouter } from "expo-router";
 import { auth, db } from "../../firebase";
 import { collection, getDocs, deleteDoc, doc, onSnapshot, query, orderBy, setDoc } from "firebase/firestore";
 
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
+const FadeButton = ({ onPress, children, style }) => {
+  const fadeAnim = React.useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0.5,
+      duration: 150,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 150,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <AnimatedTouchable
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={[{ opacity: fadeAnim }, style]}
+      activeOpacity={1}
+    >
+      {children}
+    </AnimatedTouchable>
+  );
+};
 export default function HomeScreen() {
   const router = useRouter();
   const user = auth.currentUser;
@@ -58,8 +92,103 @@ export default function HomeScreen() {
 
     return unsubscribe;
   };
+    const RecipeCard = ({ item }) => {
+    const id = item.id;
+    const scaleAnim = React.useRef(new Animated.Value(1)).current;
+    const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
-  
+    React.useEffect(() => {
+      // Animacion fade-in kur komponenti mountohet
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }, []);
+
+    let formattedDate = "";
+    if (item.createdAt) {
+      if (typeof item.createdAt === "string") {
+        formattedDate = item.createdAt.split("T")[0];
+      } else if (item.createdAt.toDate) {
+        formattedDate = item.createdAt.toDate().toISOString().split("T")[0];
+      }
+    }
+
+    const handlePressIn = () => {
+      Animated.spring(scaleAnim, {
+        toValue: 0.95,
+        friction: 3,
+        useNativeDriver: true,
+      }).start();
+    };
+
+    const handlePressOut = () => {
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 3,
+        useNativeDriver: true,
+      }).start();
+    };
+
+    const handleToggleFavorite = () => {
+      toggleFavorite(item);
+    };
+
+    const handleDelete = () => {
+      deleteRecipe(item.id, item.ownerId);
+    };
+
+    const handlePressRecipe = () => {
+      router.push(`/recipe/${id}`);
+    };
+
+    return (
+      <Animated.View style={[styles.postContainer, { opacity: fadeAnim }]}>
+        <Animated.View 
+          style={{ transform: [{ scale: scaleAnim }] }}
+          onTouchStart={handlePressIn}
+          onTouchEnd={handlePressOut}
+        >
+          <View style={styles.userRow}>
+            <Ionicons name="person-circle-outline" size={38} color="#4CAF50" />
+            <View style={{ marginLeft: 8 }}>
+              <Text style={styles.username}>{item.ownerEmail}</Text>
+              {formattedDate !== "" && (
+                <Text style={styles.date}>{formattedDate}</Text>
+              )}
+            </View>
+          </View>
+
+          <FadeButton onPress={handlePressRecipe}>
+            <Image source={{ uri: item.imageURL }} style={styles.recipeImage} />
+          </FadeButton>
+
+          <FadeButton onPress={handlePressRecipe}>
+            <Text style={styles.recipeTitle}>{item.title}</Text>
+          </FadeButton>
+
+          <View style={styles.actionRow}>
+            <FadeButton onPress={handleToggleFavorite}>
+              <Ionicons
+                name={favorites.includes(item.id) ? "heart" : "heart-outline"}
+                size={28}
+                color={favorites.includes(item.id) ? "red" : "#fff"}
+              />
+            </FadeButton>
+
+            {item.ownerId === user?.uid && (
+              <FadeButton onPress={handleDelete}>
+                <Ionicons name="trash-outline" size={28} color="red" />
+              </FadeButton>
+            )}
+          </View>
+        </Animated.View>
+      </Animated.View>
+    );
+  };
+
+
   const loadFavoritesRealtime = () => {
     if (!user) return;
 
