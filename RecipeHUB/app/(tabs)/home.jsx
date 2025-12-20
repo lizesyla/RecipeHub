@@ -19,6 +19,7 @@ import { useRouter } from "expo-router";
 import { auth, db } from "../../firebase";
 import { collection, getDocs, deleteDoc, doc, onSnapshot, query, orderBy, setDoc } from "firebase/firestore";
 
+
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 const FadeButton = ({ onPress, children, style }) => {
@@ -53,6 +54,74 @@ const FadeButton = ({ onPress, children, style }) => {
   );
 };
 
+
+const DeleteConfirmationModal = ({ visible, onConfirm, onCancel }) => {
+  const [modalVisible, setModalVisible] = useState(visible);
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const slideAnim = React.useRef(new Animated.Value(300)).current;
+
+  React.useEffect(() => {
+    if (visible) {
+      setModalVisible(true);
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          tension: 50,
+          friction: 7,
+          useNativeDriver: true,
+        })
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 300,
+          duration: 200,
+          useNativeDriver: true,
+        })
+      ]).start(() => {
+        setModalVisible(false);
+      });
+    }
+  }, [visible]);
+
+  if (!modalVisible) return null;
+
+  return (
+    <Animated.View style={[styles.modalOverlay, { opacity: fadeAnim }]}>
+      <Animated.View 
+        style={[
+          styles.modalContainer, 
+          { transform: [{ translateY: slideAnim }] }
+        ]}
+      >
+        <Text style={styles.modalTitle}>Delete Recipe</Text>
+        <Text style={styles.modalText}>
+          Are you sure you want to delete this recipe? This action cannot be undone.
+        </Text>
+        <View style={styles.modalButtons}>
+          <FadeButton onPress={onCancel} style={styles.modalButtonCancel}>
+            <Text style={styles.modalButtonTextCancel}>Cancel</Text>
+          </FadeButton>
+          <FadeButton onPress={onConfirm} style={styles.modalButtonConfirm}>
+            <Text style={styles.modalButtonTextConfirm}>Delete</Text>
+          </FadeButton>
+        </View>
+      </Animated.View>
+    </Animated.View>
+  );
+};
+
+
 const RecipeCard = React.memo(({ 
   item, 
   favorites, 
@@ -65,7 +134,7 @@ const RecipeCard = React.memo(({
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
-  
+    
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 300,
@@ -334,6 +403,15 @@ export default function HomeScreen() {
         maxToRenderPerBatch={10}
         windowSize={10}
       />
+
+      <DeleteConfirmationModal
+        visible={deleteModalVisible}
+        onConfirm={handleDeleteRecipe}
+        onCancel={() => {
+          setDeleteModalVisible(false);
+          setRecipeToDelete(null);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -442,5 +520,75 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 14,
+  },
+
+  modalOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000
+  },
+
+  modalContainer: {
+    backgroundColor: "#1a1a1a",
+    borderRadius: 15,
+    padding: 24,
+    width: "85%",
+    maxWidth: 400
+  },
+
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#fff",
+    marginBottom: 12,
+    textAlign: "center"
+  },
+
+  modalText: {
+    fontSize: 16,
+    color: "#aaa",
+    textAlign: "center",
+    marginBottom: 24,
+    lineHeight: 22
+  },
+
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12
+  },
+
+  modalButtonCancel: {
+    flex: 1,
+    paddingVertical: 12,
+    backgroundColor: "#333",
+    borderRadius: 8,
+    alignItems: "center"
+  },
+
+  modalButtonConfirm: {
+    flex: 1,
+    paddingVertical: 12,
+    backgroundColor: "#ff4444",
+    borderRadius: 8,
+    alignItems: "center"
+  },
+
+  modalButtonTextCancel: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600"
+  },
+
+  modalButtonTextConfirm: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600"
   }
 });
