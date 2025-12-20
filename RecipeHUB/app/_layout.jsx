@@ -4,6 +4,16 @@ import * as Font from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect } from "react";
 import { AuthProvider, useAuth } from "../context/AuthContext";
+import * as Notifications from "expo-notifications";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 function RootLayoutNav() {
   const { loading } = useAuth();

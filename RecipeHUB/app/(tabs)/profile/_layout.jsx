@@ -5,17 +5,27 @@ export default function ProfileLayout() {
   return (
     <Drawer
       screenOptions={{
-        headerStyle: { backgroundColor: "#4CAF50" }, 
+        headerStyle: { backgroundColor: "#4CAF50" },
         headerTintColor: "#fff",
         drawerActiveBackgroundColor: "#4CAF50",
         drawerActiveTintColor: "#fff",
         drawerInactiveTintColor: "#ccc",
       }}
     >
-      <Drawer.Screen 
-        name="index" 
-        options={{ title: "Profile" }} 
+      <Drawer.Screen
+        name="index"
+        options={{ title: "Profile" }}
       />
+      <Drawer.Screen
+        name="notifications"
+        options={{
+          title: "Notifications",
+          drawerIcon: ({ color, size }) => (
+            <Ionicons name="notifications-outline" color={color} size={size} />
+          ),
+        }}
+      />
+
 
       <Drawer.Screen
         name="about"
