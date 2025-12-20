@@ -1,7 +1,7 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, Platform, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
+import { useState, useCallback, useMemo  } from "react";
 import { auth } from "../firebase";
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, signOut } from "firebase/auth";
 import * as ImagePicker from "expo-image-picker";
@@ -25,7 +25,7 @@ export default function Register() {
   const [profileImage, setProfileImage] = useState(null);
 
   
-  const handlePickImage = async () => {
+  const handlePickImage = useCallback(async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
@@ -47,10 +47,11 @@ export default function Register() {
     } catch {
       setError("Failed to pick image");
     }
-  };
+  }, []);
+  
   
 
-  const handleTakePhoto = async () => {
+  const handleTakePhoto = useCallback(async () => {
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== "granted") {
@@ -71,37 +72,31 @@ export default function Register() {
     } catch {
       setError("Failed to open camera");
     }
-  };
+  }, []);
+  
   
 
-  const validateInputs = () => {
-    if (fullName.trim() === "" || email.trim() === "" || password.trim() === "" || confirmPassword.trim() === "") {
-      setError("All fields are required");
+  const isFormValid = useMemo(() => {
+    if (
+      fullName.trim() === "" ||
+      email.trim() === "" ||
+      password.trim() === "" ||
+      confirmPassword.trim() === ""
+    ) {
       return false;
     }
-
+  
     const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-    if (!emailRegex.test(email)) {
-      setError("Email is not valid");
-      return false;
-    }
-
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return false;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return false;
-    }
-
-    setError("");
+    if (!emailRegex.test(email)) return false;
+    if (password.length < 6) return false;
+    if (password !== confirmPassword) return false;
+  
     return true;
-  };
+  }, [fullName, email, password, confirmPassword]);
+  
 
-  const handleSignUp = async () => {
-    if (!validateInputs()) return;
+  const handleSignUp = useCallback(async () => {
+    if (!isFormValid) return;
   
     setLoading(true);
     setError("");
@@ -127,7 +122,6 @@ export default function Register() {
           : null,
         createdAt: new Date(),
       });
-      
   
       await signOut(auth);
       setModalVisible(true);
@@ -140,7 +134,8 @@ export default function Register() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [email, password, fullName, profileImage, isFormValid]);
+  
   
 
   const handleModalClose = () => {
