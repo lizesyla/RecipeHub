@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,8 @@ import {
   Image,
   Alert,
   Animated,
-  FlatList
+  FlatList,
+  Easing
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,11 +20,10 @@ import { useRouter } from "expo-router";
 import { auth, db } from "../../firebase";
 import { collection, getDocs, deleteDoc, doc, onSnapshot, query, orderBy, setDoc } from "firebase/firestore";
 
-
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 const FadeButton = ({ onPress, children, style }) => {
-  const fadeAnim = React.useRef(new Animated.Value(1)).current;
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
     Animated.timing(fadeAnim, {
@@ -54,13 +54,12 @@ const FadeButton = ({ onPress, children, style }) => {
   );
 };
 
-
 const DeleteConfirmationModal = ({ visible, onConfirm, onCancel }) => {
   const [modalVisible, setModalVisible] = useState(visible);
-  const fadeAnim = React.useRef(new Animated.Value(0)).current;
-  const slideAnim = React.useRef(new Animated.Value(300)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(300)).current;
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (visible) {
       setModalVisible(true);
       Animated.parallel([
@@ -130,11 +129,11 @@ const RecipeCard = React.memo(({
   onDelete, 
   onPressRecipe 
 }) => {
-  const scaleAnim = React.useRef(new Animated.Value(1)).current;
-  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  React.useEffect(() => {
-    
+  useEffect(() => {
+   
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 300,
@@ -142,7 +141,7 @@ const RecipeCard = React.memo(({
     }).start();
   }, []);
 
-  const formattedDate = React.useMemo(() => {
+  const formattedDate = useMemo(() => {
     if (!item.createdAt) return "";
     if (typeof item.createdAt === "string") {
       return item.createdAt.split("T")[0];
@@ -168,17 +167,17 @@ const RecipeCard = React.memo(({
     }).start();
   };
 
-  const handleToggleFavorite = () => {
+  const handleToggleFavorite = useCallback(() => {
     onToggleFavorite(item);
-  };
+  }, [item, onToggleFavorite]);
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     onDelete(item.id, item.ownerId);
-  };
+  }, [item.id, item.ownerId, onDelete]);
 
-  const handlePressRecipe = () => {
+  const handlePressRecipe = useCallback(() => {
     onPressRecipe(item.id);
-  };
+  }, [item.id, onPressRecipe]);
 
   return (
     <Animated.View style={[styles.postContainer, { opacity: fadeAnim }]}>
@@ -198,7 +197,12 @@ const RecipeCard = React.memo(({
         </View>
 
         <FadeButton onPress={handlePressRecipe}>
-          <Image source={{ uri: item.imageURL }} style={styles.recipeImage} />
+          <Image 
+            source={{ uri: item.imageURL }} 
+            style={styles.recipeImage} 
+            resizeMode="cover"
+            progressiveRenderingEnabled={true}
+          />
         </FadeButton>
 
         <FadeButton onPress={handlePressRecipe}>
@@ -235,6 +239,17 @@ export default function HomeScreen() {
   const [error, setError] = useState("");
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [recipeToDelete, setRecipeToDelete] = useState(null);
+  
+  const headerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(headerAnim, {
+      toValue: 1,
+      duration: 500,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   useEffect(() => {
     const unsubRecipes = loadRecipesRealtime();
@@ -246,7 +261,7 @@ export default function HomeScreen() {
     };
   }, []);
 
-  const loadRecipesRealtime = () => {
+  const loadRecipesRealtime = useCallback(() => {
     const ref = collection(db, "AllRecipes");
     const q = query(ref, orderBy("createdAt", "desc"));
 
@@ -264,9 +279,9 @@ export default function HomeScreen() {
     );
 
     return unsubscribe;
-  };
+  }, []);
 
-  const loadFavoritesRealtime = () => {
+  const loadFavoritesRealtime = useCallback(() => {
     if (!user) return;
 
     const favRef = collection(db, "users", user.uid, "favorites");
@@ -277,9 +292,9 @@ export default function HomeScreen() {
     });
 
     return unsub;
-  };
+  }, [user]);
 
-  const toggleFavorite = (item) => {
+  const toggleFavorite = useCallback(async (item) => {
     if (!user) return;
 
     const favDoc = doc(db, "users", user.uid, "favorites", item.id);
@@ -293,22 +308,14 @@ export default function HomeScreen() {
         return [...prev, item.id];
       }
     });
-  };
+  }, [user]);
 
-  const onMoreRecipesPress = () => {
-    router.push("/more-recipes");
-  };
-
-  const onRecipePress = (id) => {
-    router.push(`/recipe/${id}`);
-  };
-
-  const showDeleteConfirmation = (id, ownerId) => {
+  const showDeleteConfirmation = useCallback((id, ownerId) => {
     setRecipeToDelete({ id, ownerId });
     setDeleteModalVisible(true);
-  };
+  }, []);
 
-  const handleDeleteRecipe = async () => {
+  const handleDeleteRecipe = useCallback(async () => {
     if (!recipeToDelete || !user) return;
 
     const { id, ownerId } = recipeToDelete;
@@ -318,6 +325,7 @@ export default function HomeScreen() {
       return;
     }
 
+   
     setRecipes(prev => prev.filter(item => item.id !== id));
 
     try {
@@ -329,19 +337,40 @@ export default function HomeScreen() {
       Alert.alert("Error", "Failed to delete recipe.");
       loadRecipesRealtime();
     }
-  };
+  }, [recipeToDelete, user, loadRecipesRealtime]);
 
-  const renderHeader = () => (
-    <View style={styles.headerContainer}>
-      <View style={{ width: 100 }} /> 
+  const onMoreRecipesPress = useCallback(() => {
+    router.push("/more-recipes");
+  }, [router]);
+
+  const onRecipePress = useCallback((id) => {
+    router.push(`/recipe/${id}`);
+  }, [router]);
+
+  const renderHeader = useMemo(() => (
+    <Animated.View 
+      style={[
+        styles.headerContainer,
+        {
+          opacity: headerAnim,
+          transform: [{
+            translateY: headerAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [-50, 0]
+            })
+          }]
+        }
+      ]}
+    >
+      <View style={{ width: 100 }} />
       <Text style={styles.header}>Feed</Text>
       <FadeButton onPress={onMoreRecipesPress} style={styles.moreButton}>
         <Text style={styles.moreButtonText}>More Recipes</Text>
       </FadeButton>
-    </View>
-  );
+    </Animated.View>
+  ), [headerAnim, onMoreRecipesPress]);
 
-  const renderItem = ({ item }) => (
+  const renderItem = useCallback(({ item }) => (
     <RecipeCard
       item={item}
       favorites={favorites}
@@ -350,9 +379,9 @@ export default function HomeScreen() {
       onDelete={showDeleteConfirmation}
       onPressRecipe={onRecipePress}
     />
-  );
+  ), [favorites, user, toggleFavorite, showDeleteConfirmation, onRecipePress]);
 
-  const renderEmptyComponent = () => {
+  const renderEmptyComponent = useMemo(() => {
     if (loading) {
       return (
         <View style={styles.centerContainer}>
@@ -378,7 +407,7 @@ export default function HomeScreen() {
     }
     
     return null;
-  };
+  }, [loading, error, recipes.length]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
@@ -402,6 +431,8 @@ export default function HomeScreen() {
         initialNumToRender={5}
         maxToRenderPerBatch={10}
         windowSize={10}
+        updateCellsBatchingPeriod={50}
+        removeClippedSubviews={Platform.OS === "android"}
       />
 
       <DeleteConfirmationModal
