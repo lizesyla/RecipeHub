@@ -6,10 +6,31 @@ import { signInWithEmailAndPassword, GoogleAuthProvider,
   signInWithPopup } from "firebase/auth";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { Modal, Animated } from "react-native";
-import { useRef, useState, useCallback, useMemo } from "react";
-
-
+import React, { useRef, useState, useCallback, useMemo } from "react";
 const googleProvider = new GoogleAuthProvider();
+const GoogleLoginButton = React.memo(({ onPress, loading }) => {
+  return (
+    <TouchableOpacity
+      style={styles.googleButton}
+      onPress={onPress}
+      disabled={loading}
+    >
+      {loading ? (
+        <ActivityIndicator size="small" color="#4CAF50" />
+      ) : (
+        <>
+          <Ionicons
+            name="logo-google"
+            size={20}
+            color="#4CAF50"
+            style={styles.googleIcon}
+          />
+          <Text style={styles.googleText}>Sign in with Google</Text>
+        </>
+      )}
+    </TouchableOpacity>
+  );
+});
 
 export default function Login() {
   const router = useRouter();
@@ -160,21 +181,10 @@ const hideModal = useCallback(() => {
             </>
           )}
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.googleButton}
-          onPress={handleGoogleLogin}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color="#4CAF50" />
-          ) : (
-            <>
-              <Ionicons name="logo-google" size={20} color="#4CAF50" style={styles.googleIcon} />
-              <Text style={styles.googleText}>Sign in with Google</Text>
-            </>
-          )}
-        </TouchableOpacity>
+        <GoogleLoginButton
+  onPress={handleGoogleLogin}
+  loading={loading}
+/>
 
         <View style={styles.signUpView}>
           <Text style={styles.accountText}>Don't have an account?</Text>

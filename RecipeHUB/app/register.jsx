@@ -1,7 +1,7 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, Platform, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useState, useCallback, useMemo  } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { auth } from "../firebase";
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, signOut } from "firebase/auth";
 import * as ImagePicker from "expo-image-picker";
@@ -11,6 +11,42 @@ import { GoogleAuthProvider } from "firebase/auth";
 
 export const googleProvider = new GoogleAuthProvider();
 
+
+const ProfileImagePicker = React.memo(
+  ({ profileImage, onPickImage, onTakePhoto }) => {
+
+    return (
+      <View style={styles.imageWrapper}>
+        <View style={styles.imagePlaceholder}>
+          {profileImage ? (
+            <Image
+              source={{ uri: `data:image/jpeg;base64,${profileImage}` }}
+              style={styles.profileImage}
+            />
+          ) : (
+            <Ionicons name="person-circle-outline" size={80} color="#555" />
+          )}
+        </View>
+
+        <View style={styles.imageButtonsRow}>
+          <TouchableOpacity
+            style={styles.imageButton}
+            onPress={onPickImage}
+          >
+            <Text style={styles.imageButtonText}>Gallery</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.imageButton}
+            onPress={onTakePhoto}
+          >
+            <Text style={styles.imageButtonText}>Camera</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+);
 
 
 export default function Register() {
@@ -180,27 +216,11 @@ export default function Register() {
     <View style={styles.container}>
       <View style={styles.card}>
         <Text style={styles.title}>Sign Up</Text>
-
-        <View style={styles.imageWrapper}>
-          <View style={styles.imagePlaceholder}>
-          {profileImage ? (
-          <Image
-            source={{ uri: `data:image/jpeg;base64,${profileImage}` }}
-            style={styles.profileImage}
-          />
-        ) : (
-              <Ionicons name="person-circle-outline" size={80} color="#555" />
-            )}
-          </View>
-          <View style={styles.imageButtonsRow}>
-            <TouchableOpacity style={styles.imageButton} onPress={handlePickImage}>
-              <Text style={styles.imageButtonText}>Gallery</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.imageButton} onPress={handleTakePhoto}>
-              <Text style={styles.imageButtonText}>Camera</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <ProfileImagePicker
+  profileImage={profileImage}
+  onPickImage={handlePickImage}
+  onTakePhoto={handleTakePhoto}
+/>
 
         <TextInput
           style={styles.input}
