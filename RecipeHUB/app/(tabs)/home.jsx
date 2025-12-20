@@ -313,10 +313,9 @@ export default function HomeScreen() {
       <View style={styles.headerContainer}>
         <View style={{ width: 100 }} /> 
         <Text style={styles.header}>Feed</Text>
-        <TouchableOpacity onPress={onMoreRecipesPress} style={styles.moreButton}>
-          <Text style={styles.moreButtonText}>More Recipes</Text>
-        </TouchableOpacity>
-      </View>
+        <FadeButton onPress={onMoreRecipesPress} style={styles.moreButton}>
+       <Text style={styles.moreButtonText}>More Recipes</Text>
+       </FadeButton>
 
 
         {loading && <ActivityIndicator size="large" color="#4CAF50" />}
