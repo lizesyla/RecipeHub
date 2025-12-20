@@ -6,7 +6,7 @@ import { signInWithEmailAndPassword, GoogleAuthProvider,
   signInWithPopup } from "firebase/auth";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { Modal, Animated } from "react-native";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useCallback, useMemo } from "react";
 
 
 const googleProvider = new GoogleAuthProvider();
@@ -22,91 +22,92 @@ const [modalVisible, setModalVisible] = useState(false);
 const [modalMessage, setModalMessage] = useState("");
 const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const validateInputs = () => {
-    if (email.trim() === "" || password.trim() === "") {
-        setError("Both fields are required");
-        return false;
+const isFormValid = useMemo(() => {
+  if (email.trim() === "" || password.trim() === "") return false;
+
+  const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+  if (!emailRegex.test(email)) return false;
+
+  return true;
+}, [email, password]);
+
+
+const showModal = useCallback((message) => {
+  setModalMessage(message);
+  setModalVisible(true);
+  Animated.timing(fadeAnim, {
+    toValue: 1,
+    duration: 300,
+    useNativeDriver: true,
+  }).start();
+}, []);
+
+
+const hideModal = useCallback(() => {
+  Animated.timing(fadeAnim, {
+    toValue: 0,
+    duration: 300,
+    useNativeDriver: true,
+  }).start(() => setModalVisible(false));
+}, []);
+
+  const handleEmailLogin = useCallback(async () => {
+    if (!isFormValid) {
+      setError("Invalid email or password");
+      return;
     }
-
-    const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-    if (!emailRegex.test(email)) {
-        setError("Email is not valid");
-        return false;
-    }
-
-    setError("");
-    return true;
-  }
-
-  const showModal = (message) => {
-    setModalMessage(message);
-    setModalVisible(true);
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const hideModal = () => {
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => setModalVisible(false));
-  };
-  const handleEmailLogin = async () => {
-    if (!validateInputs()) return;
-    
+  
     setLoading(true);
     setError("");
-    
+  
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      setLoading(false);
       router.replace("/(tabs)/home");
     } catch (error) {
-      setLoading(false);
       if (error.code === "auth/invalid-credential") {
         setError("Incorrect email or password");
       } else {
         setError(error.message);
       }
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [email, password, isFormValid]);
+  
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = useCallback(async () => {
     setLoading(true);
     setError("");
   
     try {
       await signInWithPopup(auth, googleProvider);
-      setLoading(false);
       router.replace("/(tabs)/home");
     } catch (error) {
-      setLoading(false);
       setError(error.message);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
   
-  const handleForgotPassword = async () => {
+  
+  const handleForgotPassword = useCallback(async () => {
     if (email.trim() === "") {
       showModal("Please enter your email to reset password");
       return;
     }
-
+  
     setLoading(true);
-    setError("");
-
+  
     try {
       await sendPasswordResetEmail(auth, email);
       showModal("Password reset email has been sent!");
-    } catch (error) {
+    } catch {
       showModal("Failed to send reset email");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
-  };
+  }, [email, showModal]);
+  
 
   return (
     <View style={styles.container}>

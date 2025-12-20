@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { View, Text, TextInput, StyleSheet, SafeAreaView, StatusBar, Platform, FlatList, ActivityIndicator, Alert  } from "react-native";
+import { View, Text, TextInput, StyleSheet, SafeAreaView, StatusBar, Platform, FlatList, ActivityIndicator, Alert, LayoutAnimation, UIManager  } from "react-native";
 import * as Font from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
 import { collection, query, where, getDocs } from "firebase/firestore";
@@ -7,6 +7,10 @@ import { db } from "../../firebase"
 import { TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 import RecipeCard from '../../components/RecipeCard';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const showAlert = (title, message) => {
   if (Platform.OS === 'web') {
@@ -27,9 +31,15 @@ export default function SearchScreen() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  
+  const handleClear = useCallback(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setSearchText("");
+    setResults([]);
+  }, []);
+
   const handleSearch = useCallback(async () => {
     if (searchText.trim().length < 2) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setResults([]);
       return;
     }
@@ -42,6 +52,7 @@ export default function SearchScreen() {
       );
       const snapshot = await getDocs(q);
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
       setResults(data);
     } catch (error) {
       showAlert("Error", "Could not fetch recipes. Check your connection.");
@@ -62,8 +73,11 @@ export default function SearchScreen() {
     router.push(`/recipe/${id}`);
   }, []);
 
-  const renderItem = useCallback(({ item }) => (
-    <RecipeCard item={item} onPress={handleNavigate} />
+  const renderItem = useCallback(({ item, index }) => (
+    <RecipeCard 
+    item={item}
+    index={index}
+    onPress={handleNavigate} />
   ), [handleNavigate]);
 
   const ListHeader = useMemo(() => (
@@ -79,7 +93,7 @@ export default function SearchScreen() {
       />
       {searchText.length > 0 && (
         <TouchableOpacity 
-          onPress={() => { setSearchText(""); setResults([]); }}
+          onPress={handleClear} 
           style={styles.clearButton}
         >
           <Ionicons name="close-circle" size={20} color="#4CAF50" />
@@ -110,6 +124,8 @@ export default function SearchScreen() {
             <Text style={{ color: "#aaa", textAlign: 'center', marginTop: 20 }}>No results found</Text>
           ) : null
         }
+      
+        removeClippedSubviews={Platform.OS !== 'web'}
       />
     </SafeAreaView>
   );
