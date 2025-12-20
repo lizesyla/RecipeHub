@@ -9,12 +9,17 @@ import {
   StatusBar,
   Platform,
   Modal,
-  ActivityIndicator
+  ActivityIndicator,
+  KeyboardAvoidingView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { auth, db } from "../../firebase.js";
 import { doc, setDoc } from "firebase/firestore";
+import * as ImagePicker from "expo-image-picker";
+import { Image, Alert } from "react-native";
+
+
 
 export default function CreateRecipeScreen() {
   const [title, setTitle] = useState("");
@@ -22,6 +27,8 @@ export default function CreateRecipeScreen() {
   const [ingredients, setIngredients] = useState([]);
   const [instructions, setInstructions] = useState("");
   const [imageURL, setImageURL] = useState("");
+  const [image, setImage] = useState(null);
+
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
@@ -36,7 +43,7 @@ export default function CreateRecipeScreen() {
     if (inputIngredient.trim() === "") return;
     const newIngredient = {
       id: Date.now().toString(),
-      name: inputIngredient
+      name: inputIngredient,
     };
     setIngredients([...ingredients, newIngredient]);
     setInputIngredient("");
@@ -44,6 +51,41 @@ export default function CreateRecipeScreen() {
 
   const deleteIngredient = (id) => {
     setIngredients(ingredients.filter((item) => item.id !== id));
+  };
+  const pickFromGallery = async () => {
+    const permission =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      Alert.alert("Permission needed", "Gallery access is required.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
+  const takePhoto = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (!permission.granted) {
+      Alert.alert("Permission needed", "Camera access is required.");
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
   };
 
   const saveRecipe = async () => {
@@ -54,7 +96,11 @@ export default function CreateRecipeScreen() {
       return;
     }
 
-    if (title.trim() === "" || ingredients.length === 0 || instructions.trim() === "") {
+    if (
+      title.trim() === "" ||
+      ingredients.length === 0 ||
+      instructions.trim() === ""
+    ) {
       showModal("Please fill out all fields.");
       return;
     }
@@ -66,44 +112,47 @@ export default function CreateRecipeScreen() {
       title: title.trim(),
       ingredients,
       instructions: instructions.trim(),
-      imageURL: imageURL.trim() || "https://www.example.com/default-image.jpg",
+      imageURL: image || imageURL.trim() || "https://www.example.com/default-image.jpg",
       ownerId: user.uid,
       ownerEmail: user.email,
       createdAt: new Date().toISOString(),
     };
 
     try {
-      setLoading(true);
+  setLoading(true);
 
-      await setDoc(doc(db, "AllRecipes", recipeId), recipe);
+  await setDoc(doc(db, "AllRecipes", recipeId), recipe);
 
-      setTitle("");
-      setIngredients([]);
-      setInstructions("");
-      setImageURL("");
+  
+  const settingsRef = doc(db, "users", user.uid);
+  const settingsSnap = await getDoc(settingsRef);
 
-      showModal("Recipe created successfully!");
-    } catch (error) {
-      showModal("Error saving recipe. Try again.");
-    } finally {
-      setLoading(false);
-    }
+
+  setTitle("");
+  setIngredients([]);
+  setInstructions("");
+  setImageURL("");
+  setImage(null);
+
+
+  showModal("Recipe created successfully!");
+} catch (error) {
+  showModal("Error saving recipe. Try again.");
+} finally {
+  setLoading(false);
+}
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor={Platform.OS === "android" ? "#4CAF50" : "transparent"}
-        translucent={Platform.OS === "android"}
-      />
+<SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+      <StatusBar barStyle="light-content" />
 
       <Modal transparent visible={modalVisible || loading} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             {loading ? (
               <>
-                <ActivityIndicator size="large" />
+                <ActivityIndicator size="large" color={COLORS.primary} />
                 <Text style={[styles.modalText, { marginTop: 15 }]}>
                   Saving recipe...
                 </Text>
@@ -123,78 +172,102 @@ export default function CreateRecipeScreen() {
         </View>
       </Modal>
 
-      <ScrollView
-        style={[
-          styles.container,
-          {
-            paddingTop:
-              Platform.OS === "android" ? StatusBar.currentHeight : 0,
-          },
-        ]}
-        contentContainerStyle={{ padding: 20 }}
+    
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
       >
-        <Text style={styles.header}>Create Recipe</Text>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ padding: 20 }}
+        >
+          <Text style={styles.header}>Create Recipe</Text>
 
-        <Text style={styles.label}>Recipe Title</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter recipe title"
-          placeholderTextColor="#aaa"
-          value={title}
-          onChangeText={setTitle}
-        />
-
-        <Text style={styles.label}>Image URL</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter image URL"
-          placeholderTextColor="#aaa"
-          value={imageURL}
-          onChangeText={setImageURL}
-        />
-
-        <Text style={styles.label}>Ingredients</Text>
-        <View style={styles.row}>
+          <Text style={styles.label}>Recipe Title</Text>
           <TextInput
-            style={[styles.input, { flex: 1 }]}
-            placeholder="Add ingredient"
-            placeholderTextColor="#aaa"
-            value={inputIngredient}
-            onChangeText={setInputIngredient}
+            style={styles.input}
+            placeholder="Enter recipe title"
+            placeholderTextColor={COLORS.muted}
+            value={title}
+            onChangeText={setTitle}
           />
-          <TouchableOpacity onPress={addIngredient} style={styles.addButton}>
-            <Ionicons name="add-circle-outline" size={28} color="#fff" />
-          </TouchableOpacity>
-        </View>
 
-        {ingredients.map((item) => (
-          <View key={item.id} style={styles.ingredientItem}>
-            <Text style={styles.ingredientText}>{item.name}</Text>
-            <TouchableOpacity onPress={() => deleteIngredient(item.id)}>
-              <Text style={styles.deleteText}>Delete</Text>
+          <Text style={styles.label}>Image URL</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter image URL"
+            placeholderTextColor={COLORS.muted}
+            value={imageURL}
+            onChangeText={setImageURL}
+          />
+          <Text style={styles.label}>Recipe Image</Text>
+
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <TouchableOpacity style={styles.imageButton} onPress={pickFromGallery}>
+              <Ionicons name="images-outline" size={22} color="#fff" />
+              <Text style={styles.imageButtonText}>Gallery</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.imageButton} onPress={takePhoto}>
+              <Ionicons name="camera-outline" size={22} color="#fff" />
+              <Text style={styles.imageButtonText}>Camera</Text>
             </TouchableOpacity>
           </View>
-        ))}
+          {image && (
+            <Image
+              source={{ uri: image }}
+              style={{
+                width: "100%",
+                height: 200,
+                borderRadius: 14,
+                marginTop: 12,
+              }}
+            />
+          )}
 
-        <Text style={[styles.label, { marginTop: 20 }]}>Instructions</Text>
-        <TextInput
-          style={[styles.input, { height: 150 }]}
-          placeholder="Describe cooking steps"
-          placeholderTextColor="#aaa"
-          multiline
-          value={instructions}
-          onChangeText={setInstructions}
-        />
 
-        <TouchableOpacity style={styles.button} onPress={saveRecipe}>
-          <Ionicons name="save-outline" size={24} color="#fff" />
-          <Text style={styles.buttonText}>Save Recipe</Text>
-        </TouchableOpacity>
-      </ScrollView>
+          <Text style={styles.label}>Ingredients</Text>
+          <View style={styles.row}>
+            <TextInput
+              style={[styles.input, { flex: 1 }]}
+              placeholder="Add ingredient"
+              placeholderTextColor={COLORS.muted}
+              value={inputIngredient}
+              onChangeText={setInputIngredient}
+            />
+            <TouchableOpacity onPress={addIngredient} style={styles.addButton}>
+              <Ionicons name="add" size={26} color="#fff" />
+            </TouchableOpacity>
+          </View>
+
+          {ingredients.map((item) => (
+            <View key={item.id} style={styles.ingredientItem}>
+              <Text style={styles.ingredientText}>{item.name}</Text>
+              <TouchableOpacity onPress={() => deleteIngredient(item.id)}>
+                <Text style={styles.deleteText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+
+          <Text style={[styles.label, { marginTop: 20 }]}>Instructions</Text>
+          <TextInput
+            style={[styles.input, { height: 140 }]}
+            placeholder="Describe cooking steps"
+            placeholderTextColor={COLORS.muted}
+            multiline
+            value={instructions}
+            onChangeText={setInstructions}
+          />
+
+          <TouchableOpacity style={styles.button} onPress={saveRecipe}>
+            <Ionicons name="save-outline" size={22} color="#fff" />
+            <Text style={styles.buttonText}>Save Recipe</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#111" },
   header: {
