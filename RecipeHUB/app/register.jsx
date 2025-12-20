@@ -2,11 +2,15 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator,
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { auth, googleProvider } from "../firebase";
+import { auth } from "../firebase";
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, signOut } from "firebase/auth";
 import * as ImagePicker from "expo-image-picker";
 import { db } from "../firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc  } from "firebase/firestore";
+import { GoogleAuthProvider } from "firebase/auth";
+
+export const googleProvider = new GoogleAuthProvider();
+
 
 
 export default function Register() {
@@ -145,26 +149,37 @@ export default function Register() {
   };
   const handleGoogleRegister = async () => {
     if (Platform.OS !== "web") {
-      setError("Google Sign-Up is only available on web");
       return;
     }
-    
+  
     setLoading(true);
     setError("");
-    
+  
     try {
-      await signInWithPopup(auth, googleProvider);
-      setLoading(false);
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+  
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+  
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          fullName: user.displayName || "",
+          email: user.email,
+          photo: user.photoURL || null,
+          provider: "google",
+          createdAt: new Date(),
+        });
+      }
+  
       router.replace("/(tabs)/home");
     } catch (error) {
+      setError(error.message);
+    } finally {
       setLoading(false);
-      if (error.code === "auth/email-already-in-use") {
-        setError("Email already exists");
-      } else {
-        setError(error.message);
-      }
     }
   };
+  
 
   return (
     <View style={styles.container}>
