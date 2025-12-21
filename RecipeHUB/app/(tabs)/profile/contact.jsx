@@ -12,12 +12,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useRef, useEffect, useState, useCallback, useContext } from "react"; // Shtuar useContext
+import { useRef, useEffect, useState, useCallback, useContext } from "react"; 
 import { useRouter } from "expo-router";
 import * as Notifications from "expo-notifications";
 import { COLORS } from "../../../components/theme";
-// Nëse e përdor AuthContext, importoje këtu:
-// import { AuthContext } from "../../../context/AuthContext"; 
+import emailjs from '@emailjs/browser'; 
+
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -31,24 +31,18 @@ export default function Contact() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const router = useRouter();
   
-  // 1. Deklarimi i state-ave
   const [message, setMessage] = useState("");
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
-  // 2. Nëse përdor userData nga Context, zhblloko rreshtin poshtë:
-  // const { userData } = useContext(AuthContext); 
-  // Nëse nuk e përdor, po e deklarojmë si objekt bosh që të mos bëjë crash kodi yt
   const userData = {}; 
 
   useEffect(() => {
-    // Animacioni i parë
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 1000,
       useNativeDriver: true,
     }).start();
 
-    // Kërkesa për leje të njoftimeve
     const requestPermission = async () => {
       try {
         const { status } = await Notifications.requestPermissionsAsync();
@@ -66,39 +60,47 @@ export default function Contact() {
   }, []);
 
   const sendMessage = useCallback(async () => {
-    if (!message.trim()) {
-      if (Platform.OS === "web") {
-        alert("Ju lutemi plotësojeni fushën e kërkuar.");
-      } else {
-        Alert.alert("Error", "Ju lutemi plotësojeni fushën e kërkuar.");
-      }
-      return;
+  if (!message.trim()) {
+    Platform.OS === "web" ? alert("Plotëso fushën!") : Alert.alert("Error", "Plotëso fushën!");
+    return;
+  }
+
+  const templateParams = {
+    message: message,
+    from_name: userData?.name || "Përdorues i Paidentifikuar", 
+    reply_to: userData?.email || "nuk ka email",
+  };
+
+  try {
+    await emailjs.send(
+      'service_lwy8qyv',  
+      'template_6y5tk8n',  
+      templateParams,
+      '0cElaOrnxUKsTEBID'   
+    );
+
+    if (notificationsEnabled) {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "Mesazhi u dërgua 📬",
+          body: "Faleminderit! Ne e morëm email-in tuaj.",
+        },
+        trigger: null,
+      });
     }
 
-    try {
-      if (notificationsEnabled) {
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: "Mesazhi u dergua 📬",
-            body: "Faleminderit që na kontaktuat. Do t'ju përgjigjemi së shpejti.",
-          },
-          trigger: null,
-        });
-      }
-      
-      // Këtu mund të shtosh kodin për dërgimin e mesazhit në Firebase nëse dëshiron
-
-      if (Platform.OS === "web") {
-        alert("Mesazhi u dërgua me sukses!");
-      } else {
-        Alert.alert("Sukses", "Mesazhi u dërgua me sukses!");
-      }
-      
-      setMessage("");
-    } catch (error) {
-      console.log("Error sending notification:", error);
+    if (Platform.OS === "web") {
+      alert("Email-i u dërgua me sukses!");
+    } else {
+      Alert.alert("Sukses", "Email-i u dërgua me sukses!");
     }
-  }, [message, notificationsEnabled]);
+
+    setMessage("");
+  } catch (error) {
+    console.log("Gabim gjatë dërgimit:", error);
+    Alert.alert("Gabim", "Dërgimi dështoi. Provo përsëri.");
+  }
+}, [message, notificationsEnabled, userData]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
