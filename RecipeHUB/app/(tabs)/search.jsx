@@ -102,36 +102,79 @@ export default function SearchScreen() {
     onPress={handleNavigate} />
   ), [handleNavigate]);
 
-  const ListHeader = useMemo(() => (
-  <View>
-    <Text style={styles.header}>Search Recipes</Text>
-    <View style={styles.searchBox}>
-      <Ionicons name="search" size={22} color="#b51c7aff" />
-      <TextInput
-        style={styles.inputBox}
-        placeholder="Search..."
-        value={searchText}
-        onChangeText={setSearchText}
-      />
-
-      
-      <TouchableOpacity onPress={() => setModalVisible(true)} style={{marginHorizontal: 10}}>
-        <Ionicons name="options-outline" size={22} color="#4CAF50" />
-      </TouchableOpacity>
-
-      {searchText.length > 0 && (
-        <TouchableOpacity 
-          onPress={handleClear} 
-          style={styles.clearButton}
-        >
-          <Ionicons name="close-circle" size={20} color="#fc91e5ff" />
+ const ListHeader = useMemo(() => (
+    <View>
+      <Text style={styles.header}>Search Recipes</Text>
+      <View style={styles.searchBox}>
+        <Ionicons name="search" size={22} color={COLORS.primary} style={{ marginRight: 10 }} />
+        <TextInput
+          style={styles.inputBox}
+          placeholder="Search..."
+          placeholderTextColor="#777"
+          value={searchText}
+          onChangeText={setSearchText}
+        />
+        <TouchableOpacity onPress={() => setModalVisible(true)} style={{ marginHorizontal: 10 }}>
+          <Ionicons name="options-outline" size={22} color={COLORS.primary} />
         </TouchableOpacity>
-      )}
 
+        {searchText.length > 0 && (
+          <TouchableOpacity onPress={handleClear} style={styles.clearButton}>
+            <Ionicons name="close-circle" size={20} color={COLORS.primary} />
+          </TouchableOpacity>
+        )}
+      </View>
+
+    
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { borderColor: COLORS.primary }]}>
+            <Text style={[styles.modalTitle, { color: COLORS.primary }]}>Filter Recipes</Text>
+            
+            <Text style={styles.label}>Select Category:</Text>
+            <View style={styles.categoryContainer}>
+              {categories.map((cat) => (
+                <TouchableOpacity
+                  key={cat}
+                  style={[
+                    styles.categoryBadge,
+                    { borderColor: COLORS.primary },
+                    selectedCategory === cat && { backgroundColor: COLORS.primary }
+                  ]}
+                  onPress={() => setSelectedCategory(cat)}
+                >
+                  <Text style={[
+                    styles.categoryText,
+                    { color: COLORS.primary },
+                    selectedCategory === cat && { color: '#fff' }
+                  ]}>{cat}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
+                <Text style={{ color: '#fff' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.applyBtn, { backgroundColor: COLORS.primary }]} 
+                onPress={handleFilterApply}
+              >
+                <Text style={{ color: '#fff', fontWeight: 'bold' }}>Apply</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {loading && <ActivityIndicator color={COLORS.primary} style={{ marginVertical: 10 }} />}
     </View>
-    {loading && <ActivityIndicator color="#fc91e5ff" />}
-  </View>
-), [searchText, loading, isModalVisible, selectedCategory, handleFilterApply ]);
+  ), [searchText, loading, isModalVisible, selectedCategory, handleFilterApply]);
 
   return (
 <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
