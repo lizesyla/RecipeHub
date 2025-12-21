@@ -8,6 +8,7 @@ import { sendPasswordResetEmail } from "firebase/auth";
 import { Modal, Animated } from "react-native";
 import { useRef, useState, useCallback, useMemo } from "react";
 import { COLORS } from "../components/theme"; 
+import React from "react";
 
 
 const googleProvider = new GoogleAuthProvider();
