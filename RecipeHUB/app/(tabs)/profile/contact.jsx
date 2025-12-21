@@ -6,15 +6,18 @@ import {
   Image,
   ScrollView,
   Animated,
+  TextInput,
+  Platform,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState, useCallback, useContext } from "react"; // Shtuar useContext
 import { useRouter } from "expo-router";
-import { TextInput, Platform, Alert } from "react-native";
 import * as Notifications from "expo-notifications";
-import { useState, useCallback } from "react";
-import { COLORS } from "../../../components/theme"; 
+import { COLORS } from "../../../components/theme";
+// Nëse e përdor AuthContext, importoje këtu:
+// import { AuthContext } from "../../../context/AuthContext"; 
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -27,58 +30,75 @@ Notifications.setNotificationHandler({
 export default function Contact() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const router = useRouter();
+  
+  // 1. Deklarimi i state-ave
   const [message, setMessage] = useState("");
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+
+  // 2. Nëse përdor userData nga Context, zhblloko rreshtin poshtë:
+  // const { userData } = useContext(AuthContext); 
+  // Nëse nuk e përdor, po e deklarojmë si objekt bosh që të mos bëjë crash kodi yt
+  const userData = {}; 
 
   useEffect(() => {
+    // Animacioni i parë
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 1000,
       useNativeDriver: true,
     }).start();
-  }, []);
 
-  useEffect(() => {
+    // Kërkesa për leje të njoftimeve
     const requestPermission = async () => {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== "granted") {
-        console.log("Notification permission not granted");
+      try {
+        const { status } = await Notifications.requestPermissionsAsync();
+        setNotificationsEnabled(status === "granted");
+
+        if (status !== "granted") {
+          console.log("Notification permission not granted");
+        }
+      } catch (error) {
+        console.log("Error requesting permissions:", error);
       }
     };
 
     requestPermission();
-
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1000,
-      useNativeDriver: true,
-    }).start();
   }, []);
 
-const sendMessage = useCallback(async () => {
-  if (!message.trim()) {
-    if (Platform.OS === "web") {
-      alert("Ju lutemi plotësojeni fushën e kërkuar.");
-    } else {
-      Alert.alert("Error", "Ju lutemi plotësojeni fushën e kërkuar.");
+  const sendMessage = useCallback(async () => {
+    if (!message.trim()) {
+      if (Platform.OS === "web") {
+        alert("Ju lutemi plotësojeni fushën e kërkuar.");
+      } else {
+        Alert.alert("Error", "Ju lutemi plotësojeni fushën e kërkuar.");
+      }
+      return;
     }
-    return;
-  }
 
-  if (notificationsEnabled) {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "Mesazhi u dergua 📬",
-        body: "Faleminderit që na kontaktuat. Do t'ju përgjigjemi së shpejti.",
-      },
-      trigger: null,
-    });
-    
-  }
+    try {
+      if (notificationsEnabled) {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: "Mesazhi u dergua 📬",
+            body: "Faleminderit që na kontaktuat. Do t'ju përgjigjemi së shpejti.",
+          },
+          trigger: null,
+        });
+      }
+      
+      // Këtu mund të shtosh kodin për dërgimin e mesazhit në Firebase nëse dëshiron
 
-  setMessage("");
-}, [message, notificationsEnabled]);
-
-
+      if (Platform.OS === "web") {
+        alert("Mesazhi u dërgua me sukses!");
+      } else {
+        Alert.alert("Sukses", "Mesazhi u dërgua me sukses!");
+      }
+      
+      setMessage("");
+    } catch (error) {
+      console.log("Error sending notification:", error);
+    }
+  }, [message, notificationsEnabled]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
@@ -139,14 +159,16 @@ const sendMessage = useCallback(async () => {
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
     padding: 20,
+    paddingTop: 60,
   },
   backButton: {
     position: "absolute",
-    top: 40,
+    top: 20,
     left: 20,
     zIndex: 10,
   },
@@ -158,11 +180,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    color: COLORS.primary,
+    color: COLORS.primary || "#000",
     marginBottom: 8,
   },
   subtitle: {
-    color: COLORS.textMuted,
+    color: COLORS.textMuted || "#666",
     fontSize: 16,
     marginBottom: 20,
     textAlign: "center",
@@ -170,21 +192,21 @@ const styles = StyleSheet.create({
   contactBox: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.card || "#f0f0f0",
     padding: 16,
     borderRadius: 10,
     marginVertical: 8,
     width: "95%",
   },
   contactText: {
-    color: COLORS.text,
+    color: COLORS.text || "#333",
     fontSize: 16,
     marginLeft: 12,
     flexShrink: 1,
   },
   button: {
     flexDirection: "row",
-    backgroundColor: COLORS.buttonGreen,
+    backgroundColor: COLORS.buttonGreen || "#28a745",
     padding: 14,
     borderRadius: 10,
     justifyContent: "center",
@@ -193,19 +215,19 @@ const styles = StyleSheet.create({
     width: "95%",
   },
   buttonText: {
-    color: COLORS.text,
+    color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
   },
   input: {
     width: "95%",
-    backgroundColor: COLORS.card,
-    color: COLORS.text,
+    backgroundColor: COLORS.card || "#f0f0f0",
+    color: COLORS.text || "#000",
     padding: 14,
     borderRadius: 10,
     fontSize: 16,
     marginVertical: 12,
-    minHeight: 80,
+    minHeight: 100,
     textAlignVertical: "top",
   },
 });
