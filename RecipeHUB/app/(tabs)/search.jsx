@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { View, Text, TextInput, StyleSheet, SafeAreaView, StatusBar, Platform, FlatList, ActivityIndicator, Alert, LayoutAnimation, UIManager  } from "react-native";
+import {Modal, Pressable, View, Text, TextInput, StyleSheet, SafeAreaView, StatusBar, Platform, FlatList, ActivityIndicator, Alert, LayoutAnimation, UIManager  } from "react-native";
 import * as Font from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
 import { collection, query, where, getDocs } from "firebase/firestore";
@@ -30,6 +30,9 @@ export default function SearchScreen() {
   const [searchText, setSearchText] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const categories = ["All", "Breakfast", "Lunch", "Dinner", "Desert"];
 
   const handleClear = useCallback(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -37,21 +40,34 @@ export default function SearchScreen() {
     setResults([]);
   }, []);
 
-  const handleSearch = useCallback(async () => {
+ const handleSearch = useCallback(async () => {
     if (searchText.trim().length < 2) {
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setResults([]);
       return;
     }
+
     setLoading(true);
     try {
-      if (Platform.OS === 'web' && !navigator.onLine) {throw new Error("Offline");}
-      const q = query(
-        collection(db, "AllRecipes"), 
-        where("keywords", "array-contains", searchText.toLowerCase())
-      );
+      if (Platform.OS === 'web' && !navigator.onLine) { throw new Error("Offline"); }
+      const recipesRef = collection(db, "AllRecipes");
+      let q;
+      if (selectedCategory === "All") {
+  q = query(
+    collection(db, "AllRecipes"),
+    where("keywords", "array-contains", searchText.toLowerCase())
+  );
+} else {
+        q = query(
+          recipesRef,
+          where("category", "==", selectedCategory),
+          where("keywords", "array-contains", searchText.toLowerCase())
+        );
+      }
+
       const snapshot = await getDocs(q);
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
       LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
       setResults(data);
     } catch (error) {
@@ -60,7 +76,7 @@ export default function SearchScreen() {
     } finally {
       setLoading(false);
     }
-  }, [searchText]);
+  }, [searchText, selectedCategory]); 
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -72,6 +88,11 @@ export default function SearchScreen() {
   const handleNavigate = useCallback((id) => {
     router.push(`/recipe/${id}`);
   }, []);
+
+  const handleFilterApply = useCallback(() => {
+  setModalVisible(false);
+  handleSearch(); 
+}, [handleSearch]);
 
   const renderItem = useCallback(({ item, index }) => (
     <RecipeCard 
@@ -91,6 +112,12 @@ export default function SearchScreen() {
         value={searchText}
         onChangeText={setSearchText}
       />
+
+      
+      <TouchableOpacity onPress={() => setModalVisible(true)} style={{marginHorizontal: 10}}>
+        <Ionicons name="options-outline" size={22} color="#4CAF50" />
+      </TouchableOpacity>
+
       {searchText.length > 0 && (
         <TouchableOpacity 
           onPress={handleClear} 
@@ -101,9 +128,57 @@ export default function SearchScreen() {
       )}
 
     </View>
-    {loading && <ActivityIndicator color="#4CAF50" />}
+    <Modal
+  animationType="fade"
+  transparent={true}
+  visible={isModalVisible}
+  onRequestClose={() => setModalVisible(false)}
+>
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalContent}>
+      <Text style={styles.modalTitle}>Filter Recipes</Text>
+      
+      <Text style={styles.label}>Select Category:</Text>
+      <View style={styles.categoryContainer}>
+        {categories.map((cat) => (
+          <TouchableOpacity
+            key={cat}
+            style={[
+              styles.categoryBadge,
+              selectedCategory === cat && styles.categoryBadgeActive
+            ]}
+            onPress={() => setSelectedCategory(cat)}
+          >
+            <Text style={[
+              styles.categoryText,
+              selectedCategory === cat && styles.categoryTextActive
+            ]}>{cat}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <View style={styles.modalButtons}>
+        <TouchableOpacity 
+          style={styles.cancelBtn} 
+          onPress={() => setModalVisible(false)}
+        >
+          <Text style={{color: '#fff'}}>Cancel</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.applyBtn} 
+          onPress={handleFilterApply}
+        >
+          <Text style={{color: '#fff', fontWeight: 'bold'}}>Apply</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   </View>
-), [searchText, loading]);
+</Modal>
+
+    {loading && <ActivityIndicator color="#4CAF50" style={{marginVertical: 10}} />}
+  </View>
+), [searchText, loading, isModalVisible, selectedCategory, handleFilterApply ]);
 
   return (
 <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
@@ -180,5 +255,76 @@ const styles = StyleSheet.create({
   clearButton: {
     padding: 5, 
     marginLeft: 5,
-  }
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: '#222',
+    padding: 20,
+    borderRadius: 15,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#4CAF50'
+  },
+  modalTitle: {
+    fontSize: 20,
+    color: '#4CAF50',
+    fontWeight: 'bold',
+    marginBottom: 15
+  },
+  closeModalBtn: {
+    backgroundColor: '#4CAF50',
+    padding: 10,
+    borderRadius: 8,
+    width: '100%',
+    alignItems: 'center'
+  },categoryContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginBottom: 25,
+  },
+  categoryBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+    margin: 4,
+  },
+  categoryBadgeActive: {
+    backgroundColor: '#4CAF50',
+  },
+  categoryText: {
+    color: '#4CAF50',
+    fontSize: 13,
+  },
+  categoryTextActive: {
+    color: '#fff',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  cancelBtn: {
+    flex: 1,
+    padding: 12,
+    alignItems: 'center',
+    marginRight: 10,
+    borderRadius: 10,
+    backgroundColor: '#444',
+  },
+  applyBtn: {
+    flex: 1,
+    padding: 12,
+    alignItems: 'center',
+    borderRadius: 10,
+    backgroundColor: '#4CAF50',
+  },
 });
