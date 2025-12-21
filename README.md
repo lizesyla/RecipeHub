@@ -36,7 +36,7 @@ Aplikacioni ofron:
    
 2. Kalo në dosjen e projektit:
    
-   cd RecipeHub
+   cd RecipeHUB
    
 3. Instalo:
    
@@ -55,3 +55,17 @@ Ky projekt është krijuar si pjesë e një pune praktike / projekti në grup p�
 
 ## Licenca
 Ky projekt është i lirë për përdorim vetëm për qëllime mësimore dhe zhvillimore.
+
+   <img width="575" height="558" alt="image" src="https://github.com/user-attachments/assets/3eaf1b12-ee0b-47ea-98d9-ad0ac0039d51" />
+
+   <img width="1919" height="870" alt="image" src="https://github.com/user-attachments/assets/dc679bbc-cb07-4171-b43f-2750f02cb899" />
+
+   <img width="1911" height="867" alt="image" src="https://github.com/user-attachments/assets/955d3820-d1f9-4f30-b405-026b75a9b50e" />
+
+   <img width="1919" height="867" alt="image" src="https://github.com/user-attachments/assets/12131079-c9f8-40b3-840e-8fad021c8468" />
+
+   <img width="1919" height="867" alt="image" src="https://github.com/user-attachments/assets/195e5941-e579-4815-ad09-94bcfde6135a" />
+
+
+<img width="1917" height="866" alt="image" src="https://github.com/user-attachments/assets/402abb9d-ea82-44e9-9b52-50cb5342984c" />
+
