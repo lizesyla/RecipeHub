@@ -5,11 +5,11 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerStyle: { backgroundColor: "#4CAF50" },
+        headerStyle: { backgroundColor: "#fc91e5ff" },
         headerTintColor: "#fff",
-        tabBarStyle: { backgroundColor: "#222", height: 65, paddingBottom: 5 },
-        tabBarActiveTintColor: "#4CAF50",
-        tabBarInactiveTintColor: "#aaa",
+        tabBarStyle: { backgroundColor: "#e6d7e0ff", height: 65, paddingBottom: 5 },
+        tabBarActiveTintColor: "#e756b7ff",
+        tabBarInactiveTintColor: "#454343ff",
       }}
     >
       <Tabs.Screen
@@ -38,7 +38,7 @@ export default function TabsLayout() {
         options={{
           title: "Profile",
           tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" color={color} size={size} />,
-          headerShown: false, // <-- hiq header-in nga TabsLayout, merr header-in e vet nga Drawer-i
+          headerShown: false, 
         }}
       />
     </Tabs>

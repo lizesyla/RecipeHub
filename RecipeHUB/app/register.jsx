@@ -8,7 +8,7 @@ import * as ImagePicker from "expo-image-picker";
 import { db } from "../firebase";
 import { doc, setDoc, getDoc  } from "firebase/firestore";
 import { GoogleAuthProvider } from "firebase/auth";
-
+import { COLORS } from "../components/theme"; 
 export const googleProvider = new GoogleAuthProvider();
 
 
@@ -307,11 +307,10 @@ export default function Register() {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#050505",
+    backgroundColor: COLORS.background,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 20,
@@ -319,7 +318,7 @@ const styles = StyleSheet.create({
   card: {
     width: "100%",
     maxWidth: 420,
-    backgroundColor: "#161616",
+    backgroundColor: COLORS.card,
     borderRadius: 16,
     paddingHorizontal: 20,
     paddingVertical: 24,
@@ -332,7 +331,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: "700",
-    color: "#fff",
+    color: COLORS.text,
     marginBottom: 20,
     textAlign: "center",
   },
@@ -344,13 +343,13 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: "#1f1f1f",
+    backgroundColor: COLORS.primarySoft,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: "#2c2c2c",
+    borderColor: COLORS.primary,
   },
   profileImage: {
     width: "100%",
@@ -361,33 +360,33 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   imageButton: {
-    backgroundColor: "#1f1f1f",
+    backgroundColor: COLORS.primarySoft,
     paddingVertical: 6,
     paddingHorizontal: 14,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#4CAF50",
+    borderColor: COLORS.primary,
     marginHorizontal: 4,
   },
   imageButtonText: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 12,
   },
   input: {
     width: "100%",
-    backgroundColor: "#1f1f1f",
-    color: "#fff",
+    backgroundColor: COLORS.card,
+    color: COLORS.text,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 10,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#2c2c2c",
+    borderColor: COLORS.primary,
     fontSize: 15,
   },
   primaryButton: {
     marginTop: 18,
-    backgroundColor: "#4CAF50",
+    backgroundColor: COLORS.primary,
     paddingVertical: 12,
     borderRadius: 999,
     flexDirection: "row",
@@ -398,13 +397,13 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   primaryText: {
-    color: "#111",
+    color: COLORS.background,
     fontSize: 16,
     fontWeight: "600",
   },
   googleButton: {
     marginTop: 12,
-    backgroundColor: "#111",
+    backgroundColor: COLORS.background,
     paddingVertical: 10,
     borderRadius: 999,
     width: "100%",
@@ -412,19 +411,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "#2e7d32",
+    borderColor: COLORS.primary,
   },
   googleIcon: {
     marginRight: 10,
   },
   googleText: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 16,
     fontWeight: "600",
     textAlign: "center",
   },
   linkText: {
-    color: "#4CAF50",
+    color: COLORS.primary,
     fontSize: 16,
     textAlign: "center",
     fontWeight: "500",
@@ -435,12 +434,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   accountText: {
-    color: "#AAAAAA",
+    color: COLORS.textMuted,
     fontSize: 15,
     textAlign: "center",
   },
   errorText: {
-    color: "#ff4444",
+    color: COLORS.danger,
     fontSize: 14,
     marginTop: 5,
     textAlign: "center",
@@ -452,7 +451,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
-    backgroundColor: "#161616",
+    backgroundColor: COLORS.card,
     borderRadius: 20,
     padding: 30,
     alignItems: "center",
@@ -461,28 +460,26 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#fff",
+    color: COLORS.text,
     marginTop: 15,
     marginBottom: 10,
   },
   modalText: {
     fontSize: 16,
-    color: "#aaa",
+    color: COLORS.textMuted,
     textAlign: "center",
     marginBottom: 20,
   },
   modalButton: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: COLORS.primary,
     padding: 12,
     borderRadius: 10,
     width: "100%",
     alignItems: "center",
   },
   modalButtonText: {
-    color: "#fff",
+    color: COLORS.background,
     fontSize: 16,
     fontWeight: "bold",
   },
 });
-
-

@@ -20,6 +20,7 @@ import {
   deleteDoc,
   onSnapshot
 } from "firebase/firestore";
+import { COLORS } from "../../../components/theme"; 
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -115,7 +116,7 @@ export default function ProfileScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#4CAF50" />
+        <ActivityIndicator size="large" color="#fc91e5ff" />
       </View>
     );
   }
@@ -202,13 +203,13 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#111" },
+  container: { flex: 1, backgroundColor: COLORS.background },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
 
   profileHeader: {
     alignItems: "center",
     marginBottom: 25,
-    backgroundColor: "#1a1a1a",
+    backgroundColor: COLORS.card,
     padding: 20,
     borderRadius: 12
   },
@@ -220,27 +221,27 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
 
-  name: { fontSize: 22, color: "#fff", fontWeight: "bold" },
-  email: { color: "#aaa", marginTop: 4 },
+  name: { fontSize: 22, color: COLORS.text, fontWeight: "bold" },
+  email: { color: COLORS.textMuted, marginTop: 4 },
 
   sectionHeader: {
-    color: "#4CAF50",
+    color: COLORS.buttonGreen,
     fontSize: 20,
     fontWeight: "bold",
     marginTop: 25,
     marginBottom: 10
   },
 
-  emptyText: { color: "#aaa", marginBottom: 10 },
+  emptyText: { color: COLORS.textMuted, marginBottom: 10 },
 
   recipeBox: {
-    backgroundColor: "#222",
+    backgroundColor: COLORS.card,
     padding: 12,
     borderRadius: 10,
     marginBottom: 8
   },
 
-  recipeText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+  recipeText: { color: COLORS.text, fontSize: 16, fontWeight: "bold" },
 
   editBtn: {
     position: "absolute",
@@ -249,7 +250,7 @@ const styles = StyleSheet.create({
     padding: 5
   },
 
-  editText: { color: "#4CAF50", fontWeight: "bold" },
+  editText: { color: COLORS.buttonGreen, fontWeight: "bold" },
 
   removeBtn: {
     position: "absolute",
@@ -258,5 +259,5 @@ const styles = StyleSheet.create({
     padding: 5
   },
 
-  removeText: { color: "red", fontWeight: "bold" }
+  removeText: { color: COLORS.danger, fontWeight: "bold" }
 });

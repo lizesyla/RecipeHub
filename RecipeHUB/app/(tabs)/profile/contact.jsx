@@ -14,6 +14,7 @@ import { useRouter } from "expo-router";
 import { TextInput, Platform, Alert } from "react-native";
 import * as Notifications from "expo-notifications";
 import { useState, useCallback } from "react";
+import { COLORS } from "../../../components/theme"; 
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -79,9 +80,9 @@ export default function Contact() {
   }, [message]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <Ionicons name="arrow-back-circle" size={50} color="#4CAF50" />
+        <Ionicons name="arrow-back-circle" size={50} color="#fc91e5ff" />
       </TouchableOpacity>
 
       <ScrollView contentContainerStyle={styles.container}>
@@ -100,17 +101,17 @@ export default function Contact() {
           </Text>
 
           <View style={styles.contactBox}>
-            <Ionicons name="call" size={24} color="#4CAF50" />
+            <Ionicons name="call" size={24} color="#fc91e5ff" />
             <Text style={styles.contactText}>+383 44 123 456</Text>
           </View>
 
           <View style={styles.contactBox}>
-            <Ionicons name="mail" size={24} color="#4CAF50" />
+            <Ionicons name="mail" size={24} color="#fc91e5ff" />
             <Text style={styles.contactText}>contact@app.com</Text>
           </View>
 
           <View style={styles.contactBox}>
-            <Ionicons name="location" size={24} color="#4CAF50" />
+            <Ionicons name="location" size={24} color="#fc91e5ff" />
             <Text style={styles.contactText}>Prishtina, Kosovo</Text>
           </View>
 
@@ -137,7 +138,6 @@ export default function Contact() {
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
@@ -157,11 +157,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#fff",
+    color: COLORS.primary,
     marginBottom: 8,
   },
   subtitle: {
-    color: "#aaa",
+    color: COLORS.textMuted,
     fontSize: 16,
     marginBottom: 20,
     textAlign: "center",
@@ -169,21 +169,21 @@ const styles = StyleSheet.create({
   contactBox: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#222",
+    backgroundColor: COLORS.card,
     padding: 16,
     borderRadius: 10,
     marginVertical: 8,
     width: "95%",
   },
   contactText: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 16,
     marginLeft: 12,
     flexShrink: 1,
   },
   button: {
     flexDirection: "row",
-    backgroundColor: "#4CAF50",
+    backgroundColor: COLORS.buttonGreen,
     padding: 14,
     borderRadius: 10,
     justifyContent: "center",
@@ -192,14 +192,14 @@ const styles = StyleSheet.create({
     width: "95%",
   },
   buttonText: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 16,
     fontWeight: "bold",
   },
   input: {
     width: "95%",
-    backgroundColor: "#222",
-    color: "#fff",
+    backgroundColor: COLORS.card,
+    color: COLORS.text,
     padding: 14,
     borderRadius: 10,
     fontSize: 16,

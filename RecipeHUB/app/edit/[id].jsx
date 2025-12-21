@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { db } from "../../firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { Ionicons } from "@expo/vector-icons"; 
+import { COLORS } from "../../components/theme"; 
 
 export default function EditRecipe() {
   const { id } = useLocalSearchParams();
@@ -55,7 +56,7 @@ export default function EditRecipe() {
         style={styles.backButton}
         onPress={() => router.back()}
       >
-        <Ionicons name="arrow-back-circle" size={50} color="#4CAF50" />
+        <Ionicons name="arrow-back-circle" size={50} color="#fc91e5ff" />
       </TouchableOpacity>
       <Text style={styles.label}>Title</Text>
       <TextInput
@@ -78,25 +79,24 @@ export default function EditRecipe() {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#111", padding: 20 },
-  label: { color: "#fff", marginTop: 50, fontSize: 16 },
+  container: { flex: 1, backgroundColor: COLORS.background, padding: 20 },
+  label: { color: COLORS.text, marginTop: 50, fontSize: 16 },
   input: {
-    backgroundColor: "#222",
-    color: "#fff",
+    backgroundColor: COLORS.card,
+    color: COLORS.text,
     padding: 10,
     borderRadius: 8,
     marginTop: 5
   },
   saveBtn: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: COLORS.buttonGreen,
     padding: 15,
     borderRadius: 10,
     marginTop: 30
   },
   saveText: {
-    color: "#fff",
+    color: COLORS.text,
     fontWeight: "bold",
     textAlign: "center"
   },
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     justifyContent: "center", 
     alignItems: "center" 
   },
-    backButton: {
+  backButton: {
     position: "absolute",
     top: 10,
     left: 20,

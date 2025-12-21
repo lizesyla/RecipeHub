@@ -20,19 +20,8 @@ import * as ImagePicker from "expo-image-picker";
 import { Image, Alert } from "react-native";
 import * as Notifications from "expo-notifications";
 import { getDoc } from "firebase/firestore";
+import { COLORS } from "../../components/theme"; 
 
-
-const COLORS = {
-  background: "#FFF6F8",     
-  card: "#FFE4EB",            
-  primary: "#FF4C8B",         
-  primarySoft: "#FF8CB3",    
-  accent: "#FFD1E0",          
-  text: "#2E2E3A",            
-  textMuted: "#8C8C99",       
-  danger: "#FF2E5B",          
-  border: "#FFB6C1",         
-};
 
 export default function CreateRecipeScreen() {
   const [title, setTitle] = useState("");

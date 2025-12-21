@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
+import { COLORS } from "../../components/theme"; 
 
 import { auth, db } from "../../firebase";
 import { doc, getDoc, deleteDoc, setDoc } from "firebase/firestore";
@@ -98,7 +99,7 @@ export default function RecipeDetailScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4CAF50" />
+        <ActivityIndicator size="large" color="#fc91e5ff" />
       </SafeAreaView>
     );
   }
@@ -106,7 +107,7 @@ export default function RecipeDetailScreen() {
   if (!recipe) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <Text style={{ color: "#fff" }}>Recipe not found.</Text>
+        <Text style={{ color: "#fefdfdff" }}>Recipe not found.</Text>
       </SafeAreaView>
     );
   }
@@ -114,15 +115,15 @@ export default function RecipeDetailScreen() {
   const isOwner = recipe.userId === user?.uid;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={Platform.OS === "android" ? "#4CAF50" : "transparent"}
+        backgroundColor={Platform.OS === "android" ? "#fc91e5ff" : "transparent"}
         translucent={Platform.OS === "android"}
       />
 
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <Ionicons name="arrow-back-circle" size={44} color="#4CAF50" />
+        <Ionicons name="arrow-back-circle" size={44} color="#fc91e5ff" />
       </TouchableOpacity>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 80 }}>
@@ -179,7 +180,6 @@ export default function RecipeDetailScreen() {
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   backButton: {
     position: "absolute",
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     flexDirection: "row",
-    backgroundColor: "red",
+    backgroundColor: COLORS.danger,
     padding: 14,
     borderRadius: 12,
     justifyContent: "center",
@@ -197,25 +197,25 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   deleteText: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 16,
     fontWeight: "bold",
     marginLeft: 8,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: "#111",
+    backgroundColor: COLORS.background,
     justifyContent: "center",
     alignItems: "center",
   },
   title: {
-    color: "#4CAF50",
+    color: COLORS.buttonGreen,
     fontSize: 28,
     fontWeight: "bold",
     marginBottom: 6,
   },
   meta: {
-    color: "#aaa",
+    color: COLORS.textMuted,
     fontSize: 14,
     marginBottom: 12,
   },
@@ -226,34 +226,34 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   sectionHeader: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 20,
     fontWeight: "bold",
     marginTop: 12,
     marginBottom: 6,
   },
   ingredient: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 16,
     marginLeft: 6,
     marginBottom: 4,
   },
   instructions: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 16,
     lineHeight: 24,
     marginBottom: 20,
   },
   favoriteButton: {
     flexDirection: "row",
-    backgroundColor: "#222",
+    backgroundColor: COLORS.card,
     padding: 14,
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
   },
   favoriteText: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 16,
     fontWeight: "bold",
     marginLeft: 8,

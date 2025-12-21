@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Animated }
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useRef } from "react";
+import { COLORS } from "../../../components/theme"; 
 
 export default function AboutUs() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function AboutUs() {
         style={styles.backButton}
         onPress={() => router.back()}
       >
-        <Ionicons name="arrow-back-circle" size={50} color="#4CAF50" />
+        <Ionicons name="arrow-back-circle" size={50} color="#fc91e5ff" />
       </TouchableOpacity>
 
       <Animated.View style={{ alignItems: "center", flex: 1, justifyContent: "center" }}>
@@ -56,11 +57,10 @@ export default function AboutUs() {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#111",
+    backgroundColor: COLORS.background,
     padding: 20,
   },
   backButton: {
@@ -77,16 +77,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#fff",
+    color: COLORS.primary,
     marginBottom: 15,
   },
   scrollContent: {
     alignItems: "center",
     paddingHorizontal: 5,
-    paddingBottom: 100, 
+    paddingBottom: 100,
   },
   text: {
-    color: "#ccc",
+    color: COLORS.textMuted,
     fontSize: 16,
     lineHeight: 24,
     textAlign: "center",
@@ -95,13 +95,13 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 40,
     alignSelf: "center",
-    backgroundColor: "#1a1a1a",
+    backgroundColor: COLORS.card,
     paddingVertical: 12,
     paddingHorizontal: 25,
     borderRadius: 10,
   },
   linkText: {
-    color: "#4CAF50",
+    color: COLORS.primarySoft,
     fontSize: 18,
     fontWeight: "bold",
     textAlign: "center",

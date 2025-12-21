@@ -7,6 +7,7 @@ import { db } from "../../firebase"
 import { TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 import RecipeCard from '../../components/RecipeCard';
+import { COLORS } from "../../components/theme"; 
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -84,7 +85,7 @@ export default function SearchScreen() {
   <View>
     <Text style={styles.header}>Search Recipes</Text>
     <View style={styles.searchBox}>
-      <Ionicons name="search" size={22} color="#4CAF50" />
+      <Ionicons name="search" size={22} color="#b51c7aff" />
       <TextInput
         style={styles.inputBox}
         placeholder="Search..."
@@ -96,20 +97,20 @@ export default function SearchScreen() {
           onPress={handleClear} 
           style={styles.clearButton}
         >
-          <Ionicons name="close-circle" size={20} color="#4CAF50" />
+          <Ionicons name="close-circle" size={20} color="#fc91e5ff" />
         </TouchableOpacity>
       )}
 
     </View>
-    {loading && <ActivityIndicator color="#4CAF50" />}
+    {loading && <ActivityIndicator color="#fc91e5ff" />}
   </View>
 ), [searchText, loading]);
 
   return (
-<SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
+<SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={Platform.OS === "android" ? "#4CAF50" : "transparent"}
+        backgroundColor={Platform.OS === "android" ? COLORS.primary : "transparent"}
         translucent={Platform.OS === "android"}
       />
       
@@ -131,18 +132,17 @@ export default function SearchScreen() {
   );
 }
     
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#111" },
+  container: { flex: 1, backgroundColor: COLORS.background },
   header: {
     fontSize: 26,
     fontWeight: "bold",
-    color: "#4CAF50",
+    color: COLORS.buttonGreen,
     marginBottom: 20,
     textAlign: "center",
   },
   label: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 16,
     marginBottom: 6,
     marginTop: 12,
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   searchBox: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#222",
+    backgroundColor: COLORS.card,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -161,19 +161,19 @@ const styles = StyleSheet.create({
   },
   inputBox: {
     flex: 1,
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 16,
   },
   resultItem: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#222",
+    backgroundColor: COLORS.card,
     padding: 12,
     borderRadius: 10,
     marginTop: 10,
   },
   resultText: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 16,
     marginLeft: 10,
   },

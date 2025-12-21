@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { TouchableOpacity, Text, StyleSheet, Animated} from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
+import { COLORS } from "../components/theme"; 
 
 const RecipeCard = React.memo(({ item, index, onPress }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -40,12 +41,11 @@ const RecipeCard = React.memo(({ item, index, onPress }) => {
     
   );
 });
-
 const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#222",
+    backgroundColor: COLORS.card,
     padding: 15,
     borderRadius: 10,
     marginTop: 10,
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   text: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 16,
     marginLeft: 10,
     fontWeight: "500",

@@ -7,6 +7,7 @@ import { signInWithEmailAndPassword, GoogleAuthProvider,
 import { sendPasswordResetEmail } from "firebase/auth";
 import { Modal, Animated } from "react-native";
 import { useRef, useState, useCallback, useMemo } from "react";
+import { COLORS } from "../components/theme"; 
 
 
 const googleProvider = new GoogleAuthProvider();
@@ -167,10 +168,10 @@ const hideModal = useCallback(() => {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator size="small" color="#4CAF50" />
+            <ActivityIndicator size="small" color="#fc91e5ff" />
           ) : (
             <>
-              <Ionicons name="logo-google" size={20} color="#4CAF50" style={styles.googleIcon} />
+              <Ionicons name="logo-google" size={20} color="#fc91e5ff" style={styles.googleIcon} />
               <Text style={styles.googleText}>Sign in with Google</Text>
             </>
           )}
@@ -214,7 +215,7 @@ const hideModal = useCallback(() => {
                 marginTop: 20,
                 paddingHorizontal: 20,
                 paddingVertical: 10,
-                backgroundColor: "#4CAF50",
+                backgroundColor: "#fc91e5ff",
                 borderRadius: 8,
               }}
             >
@@ -229,11 +230,10 @@ const hideModal = useCallback(() => {
   
 }
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#050505",
+    backgroundColor: COLORS.background,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 20,
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   card: {
     width: "100%",
     maxWidth: 420,
-    backgroundColor: "#161616",
+    backgroundColor: COLORS.card,
     borderRadius: 16,
     paddingHorizontal: 20,
     paddingVertical: 24,
@@ -254,38 +254,40 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: "700",
-    color: "#fff",
+    color: COLORS.primary,
     marginBottom: 24,
     textAlign: "center",
   },
   input: {
     width: "100%",
-    backgroundColor: "#1f1f1f",
-    color: "#fff",
+    backgroundColor: COLORS.card,
+    color: COLORS.text,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 10,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#2c2c2c",
+    borderColor: COLORS.border,
     fontSize: 15,
   },
   linkText: {
-    color: "#4CAF50",
+    color: COLORS.primary,
     fontSize: 16,
     textAlign: "center",
+    fontWeight: "500",
   },
   accountText: {
-    color: "#FFFFFF",
-    fontSize: 16,
+    color: COLORS.textMuted,
+    fontSize: 15,
     textAlign: "center",
   },
   signUpView: {
     flexDirection: "row",
     marginTop: 20,
+    justifyContent: "center",
   },
   forgotText: {
-    color: "#4CAF50",
+    color: COLORS.primary,
     fontSize: 14,
     marginTop: 4,
     textAlign: "right",
@@ -293,7 +295,7 @@ const styles = StyleSheet.create({
   },  
   primaryButton: {
     marginTop: 18,
-    backgroundColor: "#4CAF50",
+    backgroundColor: COLORS.primary,
     paddingVertical: 12,
     borderRadius: 999,
     flexDirection: "row",
@@ -304,13 +306,13 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   primaryText: {
-    color: "#111",
+    color: COLORS.background,
     fontSize: 16,
     fontWeight: "600",
   },
   googleButton: {
     marginTop: 12,
-    backgroundColor: "#111",
+    backgroundColor: COLORS.background,
     paddingVertical: 10,
     borderRadius: 999,
     width: "100%",
@@ -318,39 +320,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "#2e7d32",
+    borderColor: COLORS.primary,
   },
   googleIcon: {
     marginRight: 10,
   },
   googleText: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 16,
     fontWeight: "600",
     textAlign: "center",
   },
-  linkText: {
-    color: "#4CAF50",
-    fontSize: 16,
-    textAlign: "center",
-    fontWeight: "500",
-  },
-  signUpView: {
-    flexDirection: "row",
-    marginTop: 20,
-    justifyContent: "center",
-  },
-  accountText: {
-    color: "#AAAAAA",
-    fontSize: 15,
-    textAlign: "center",
-  },
   errorText: {
-    color: "#ff4444",
+    color: COLORS.danger,
     fontSize: 14,
     marginTop: 5,
     textAlign: "center",
   }
 });
-
-

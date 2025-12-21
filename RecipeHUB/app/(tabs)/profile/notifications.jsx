@@ -4,6 +4,7 @@ import * as Notifications from "expo-notifications";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { auth, db } from "../../../firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { COLORS } from "../../../components/theme"; 
 
 export default function NotificationsScreen() {
     const [enabled, setEnabled] = useState(false);
@@ -27,7 +28,6 @@ export default function NotificationsScreen() {
 
         loadSettings();
     }, []);
-
 
     const registerForPushNotifications = async () => {
         const { status } = await Notifications.getPermissionsAsync();
@@ -74,7 +74,6 @@ export default function NotificationsScreen() {
         }
     };
 
-
     return (
         <SafeAreaView style={styles.container}>
             <Text style={styles.title}>Notification Settings</Text>
@@ -84,7 +83,8 @@ export default function NotificationsScreen() {
                 <Switch
                     value={enabled}
                     onValueChange={toggleNotifications}
-                    thumbColor={enabled ? "#FF5FA2" : "#ccc"}
+                    thumbColor={enabled ? COLORS.primary : COLORS.textMuted}
+                    trackColor={{ true: COLORS.accent, false: COLORS.border }}
                 />
             </View>
 
@@ -99,30 +99,30 @@ export default function NotificationsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#0F0F14",
+        backgroundColor: COLORS.background,
         padding: 20,
     },
     title: {
         fontSize: 22,
         fontWeight: "bold",
-        color: "#FF5FA2",
+        color: COLORS.primary,
         marginBottom: 20,
     },
     row: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        backgroundColor: "#1A1A22",
+        backgroundColor: COLORS.card,
         padding: 16,
         borderRadius: 12,
     },
     label: {
-        color: "#fff",
+        color: COLORS.text,
         fontSize: 16,
     },
     info: {
         marginTop: 20,
-        color: "#aaa",
+        color: COLORS.textMuted,
         fontSize: 14,
     },
 });

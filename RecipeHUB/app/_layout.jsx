@@ -18,7 +18,7 @@ Notifications.setNotificationHandler({
 function RootLayoutNav() {
   const { loading } = useAuth();
 
-  // ✅ Kjo pjesë i ngarkon ikonat globalisht
+  
   useEffect(() => {
     Font.loadAsync({
       ...Ionicons.font,
@@ -28,7 +28,7 @@ function RootLayoutNav() {
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#111" }}>
-        <ActivityIndicator size="large" color="#4CAF50" />
+        <ActivityIndicator size="large" color="#fc91e5ff" />
       </View>
     );
   }
@@ -37,7 +37,7 @@ function RootLayoutNav() {
     <>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={Platform.OS === "android" ? "#4CAF50" : "transparent"}
+        backgroundColor={Platform.OS === "android" ? "#fc91e5ff" : "transparent"}
         translucent={Platform.OS === "android"}
       />
       <Stack screenOptions={{ headerShown: false }} />

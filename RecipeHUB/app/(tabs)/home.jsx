@@ -19,6 +19,7 @@ import { useRouter } from "expo-router";
 
 import { auth, db } from "../../firebase";
 import { collection, getDocs, deleteDoc, doc, onSnapshot, query, orderBy, setDoc } from "firebase/firestore";
+import { COLORS } from "../../components/theme"; 
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -187,7 +188,7 @@ const RecipeCard = React.memo(({
         onTouchEnd={handlePressOut}
       >
         <View style={styles.userRow}>
-          <Ionicons name="person-circle-outline" size={38} color="#4CAF50" />
+          <Ionicons name="person-circle-outline" size={38} color="#b61290ff" />
           <View style={{ marginLeft: 8 }}>
             <Text style={styles.username}>{item.ownerEmail}</Text>
             {formattedDate !== "" && (
@@ -410,10 +411,10 @@ export default function HomeScreen() {
   }, [loading, error, recipes.length]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background}}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={Platform.OS === "android" ? "#4CAF50" : "transparent"}
+        backgroundColor={Platform.OS === "android" ? "#fc91e5ff" : "transparent"}
         translucent={Platform.OS === "android"}
       />
 
@@ -445,12 +446,10 @@ export default function HomeScreen() {
       />
     </SafeAreaView>
   );
-}
-
-const styles = StyleSheet.create({
+}const styles = StyleSheet.create({
   container: { 
     flexGrow: 1,
-    backgroundColor: "#111",
+    backgroundColor: COLORS.background,
     paddingHorizontal: 20,
     paddingBottom: 20
   },
@@ -473,27 +472,27 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#4CAF50",
+    color: COLORS.primary,
     textAlign: "center",
     flex: 1
   },
 
   error: { 
-    color: "red", 
+    color: COLORS.danger, 
     textAlign: "center", 
     fontSize: 16,
     marginTop: 20 
   },
   
   noRecipes: { 
-    color: "#aaa", 
+    color: COLORS.textMuted, 
     textAlign: "center", 
     fontSize: 18,
     marginTop: 20 
   },
 
   postContainer: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: COLORS.card,
     marginBottom: 25,
     borderRadius: 12,
     paddingBottom: 15,
@@ -507,13 +506,13 @@ const styles = StyleSheet.create({
   },
 
   username: { 
-    color: "#fff", 
+    color: COLORS.text, 
     fontSize: 16, 
     fontWeight: "bold" 
   },
   
   date: { 
-    color: "#aaa", 
+    color: COLORS.textMuted, 
     fontSize: 12 
   },
 
@@ -525,7 +524,7 @@ const styles = StyleSheet.create({
   },
 
   recipeTitle: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 20,
     fontWeight: "bold",
     marginTop: 12,
@@ -543,12 +542,12 @@ const styles = StyleSheet.create({
   moreButton: {
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: "#4CAF50",
+    backgroundColor: COLORS.primary,
     borderRadius: 8,
   },
   
   moreButtonText: {
-    color: "#fff",
+    color: COLORS.text,
     fontWeight: "bold",
     fontSize: 14,
   },
@@ -559,14 +558,15 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    backgroundColor: COLORS.text,
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 1000
+    zIndex: 1000,
+    opacity: 0.7
   },
 
   modalContainer: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: COLORS.card,
     borderRadius: 15,
     padding: 24,
     width: "85%",
@@ -576,14 +576,14 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#fff",
+    color: COLORS.text,
     marginBottom: 12,
     textAlign: "center"
   },
 
   modalText: {
     fontSize: 16,
-    color: "#aaa",
+    color: COLORS.textMuted,
     textAlign: "center",
     marginBottom: 24,
     lineHeight: 22
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
   modalButtonCancel: {
     flex: 1,
     paddingVertical: 12,
-    backgroundColor: "#333",
+    backgroundColor: COLORS.accent,
     borderRadius: 8,
     alignItems: "center"
   },
@@ -606,19 +606,19 @@ const styles = StyleSheet.create({
   modalButtonConfirm: {
     flex: 1,
     paddingVertical: 12,
-    backgroundColor: "#ff4444",
+    backgroundColor: COLORS.danger,
     borderRadius: 8,
     alignItems: "center"
   },
 
   modalButtonTextCancel: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 16,
     fontWeight: "600"
   },
 
   modalButtonTextConfirm: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 16,
     fontWeight: "600"
   }

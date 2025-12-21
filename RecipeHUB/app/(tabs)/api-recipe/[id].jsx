@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { COLORS } from "../../../components/theme"; 
 
 export default function ApiRecipeScreen() {
   const { id } = useLocalSearchParams();
@@ -152,13 +153,13 @@ export default function ApiRecipeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#111",
+    backgroundColor: COLORS.background,
   },
   center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#111",
+    backgroundColor: COLORS.background,
   },
   image: {
     width: "100%",
@@ -168,7 +169,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 50,
     left: 20,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: COLORS.card,
     borderRadius: 20,
     padding: 8,
   },
@@ -178,7 +179,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#fff",
+    color: COLORS.primary,
     marginBottom: 10,
   },
   metaContainer: {
@@ -187,7 +188,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   metaText: {
-    color: "#4CAF50",
+    color: COLORS.buttonGreen,
     fontSize: 14,
     fontStyle: "italic",
   },
@@ -197,48 +198,50 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#4CAF50",
+    color: COLORS.buttonGreen,
     marginBottom: 10,
   },
   ingredientRow: {
     marginBottom: 5,
   },
   ingredientText: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 16,
   },
   instructions: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 16,
     lineHeight: 24,
   },
   youtubeButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FF0000",
+    backgroundColor: COLORS.danger,
     padding: 15,
     borderRadius: 8,
     marginBottom: 10,
     justifyContent: "center",
   },
   youtubeText: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 16,
     fontWeight: "bold",
     marginLeft: 8,
   },
   sourceButton: {
-    backgroundColor: "#333",
+    backgroundColor: COLORS.card,
     padding: 15,
     borderRadius: 8,
     alignItems: "center",
   },
   sourceText: {
-    color: "#4CAF50",
+    color: COLORS.primarySoft,
     fontSize: 16,
   },
   errorText: {
-    color: "#fff",
+    color: COLORS.danger,
     fontSize: 18,
   },
 });
+
+

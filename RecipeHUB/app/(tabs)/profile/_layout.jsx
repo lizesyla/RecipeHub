@@ -5,9 +5,9 @@ export default function ProfileLayout() {
   return (
     <Drawer
       screenOptions={{
-        headerStyle: { backgroundColor: "#4CAF50" },
+        headerStyle: { backgroundColor: "#fc91e5ff" },
         headerTintColor: "#fff",
-        drawerActiveBackgroundColor: "#4CAF50",
+        drawerActiveBackgroundColor: "#fc91e5ff",
         drawerActiveTintColor: "#fff",
         drawerInactiveTintColor: "#ccc",
       }}

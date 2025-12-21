@@ -21,6 +21,7 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import {router } from "expo-router";
+import { COLORS } from "../../components/theme"; 
 
 export default function MoreRecipes() {
   const [user, setUser] = useState(null);
@@ -141,12 +142,12 @@ export default function MoreRecipes() {
         style={styles.backButton}
         onPress={() => router.back()}
       >
-        <Ionicons name="arrow-back-circle" size={50} color="#4CAF50" />
+        <Ionicons name="arrow-back-circle" size={50} color="#fc91e5ff" />
       </TouchableOpacity>
       <Text style={styles.header}>More Recipes from Database</Text>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#4CAF50" style={{ marginTop: 20 }} />
+        <ActivityIndicator size="large" color="#fc91e5ff" style={{ marginTop: 20 }} />
       ) : (
         meals.map((meal) => (
           <View key={meal.idMeal} style={styles.card}>
@@ -159,7 +160,7 @@ export default function MoreRecipes() {
               <Ionicons
                 name={favorites.includes(meal.idMeal) ? "heart" : "heart-outline"}
                 size={28}
-                color={favorites.includes(meal.idMeal) ? "red" : "#4CAF50"}
+                color={favorites.includes(meal.idMeal) ? "red" : "#fc91e5ff"}
               />
             </TouchableOpacity>
           </View>
@@ -168,35 +169,34 @@ export default function MoreRecipes() {
     </ScrollView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#111",
+    backgroundColor: COLORS.background,
   },
   header: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#4CAF50",
+    color: COLORS.buttonGreen,
     marginBottom: 20,
     textAlign: "center",
   },
   card: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#222",
+    backgroundColor: COLORS.card,
     padding: 14,
     borderRadius: 10,
     marginBottom: 12,
   },
   cardText: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 16,
     marginLeft: 12,
     fontWeight: "bold",
   },
   category: {
-    color: "#aaa",
+    color: COLORS.textMuted,
     fontSize: 12,
     marginLeft: 12,
     marginTop: 4,
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 10,
   },
-    backButton: {
+  backButton: {
     position: "absolute",
     top: 10,
     left: 20,
