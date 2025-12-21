@@ -105,7 +105,7 @@ export default function SearchScreen() {
   <View>
     <Text style={styles.header}>Search Recipes</Text>
     <View style={styles.searchBox}>
-      <Ionicons name="search" size={22} color="#4CAF50" />
+      <Ionicons name="search" size={22} color="#4CAF50" style={{ marginRight: 10 }}/>
       <TextInput
         style={styles.inputBox}
         placeholder="Search..."
@@ -226,10 +226,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#222",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#333",
+    marginRight: 10,
   },
   icon: {
     marginRight: 10,
@@ -238,6 +241,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: "#fff",
     fontSize: 16,
+    paddingLeft: 10,
   },
   resultItem: {
     flexDirection: "row",
