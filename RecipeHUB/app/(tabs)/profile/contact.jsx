@@ -54,30 +54,31 @@ export default function Contact() {
     }).start();
   }, []);
 
-  const sendMessage = useCallback(async () => {
-    if (!message.trim()) {
-      if (Platform.OS === "web") {
-        alert("Ju lutemi plotësojeni fushën e kërkuar.");
-      } else {
-        Alert.alert("Error", "Ju lutemi plotësojeni fushën e kërkuar.");
-      }
-      return;
-    }
-
+const sendMessage = useCallback(async () => {
+  if (!message.trim()) {
     if (Platform.OS === "web") {
-      alert("Mesazhi u dërgua me sukses! Mbesim në kontakt. 🌿");
+      alert("Ju lutemi plotësojeni fushën e kërkuar.");
     } else {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: "Message Sent",
-          body: "Mesazhi u dërgua me sukses! Mbesim në kontakt. 🌿",
-        },
-        trigger: null,
-      });
+      Alert.alert("Error", "Ju lutemi plotësojeni fushën e kërkuar.");
     }
+    return;
+  }
 
-    setMessage("");
-  }, [message]);
+  if (notificationsEnabled) {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Mesazhi u dergua 📬",
+        body: "Faleminderit që na kontaktuat. Do t'ju përgjigjemi së shpejti.",
+      },
+      trigger: null,
+    });
+    
+  }
+
+  setMessage("");
+}, [message, notificationsEnabled]);
+
+
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
