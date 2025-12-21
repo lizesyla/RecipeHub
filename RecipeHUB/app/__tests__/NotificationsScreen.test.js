@@ -70,7 +70,7 @@ jest.mock("firebase/firestore", () => ({
     });
     return () => {};
   }),
-  setDoc: jest.fn(() => Promise.resolve()), // 🔑 Mock për setDoc
+  setDoc: jest.fn(() => Promise.resolve()), 
 }));
 
 import NotificationsScreen from "../(tabs)/profile/notifications";
@@ -90,7 +90,6 @@ describe("NotificationsScreen", () => {
   it("shfaq mesazhin No items yet kur lista është bosh", async () => {
     const firestore = require("firebase/firestore");
 
-    // Simulo listë bosh
     firestore.onSnapshot.mockImplementationOnce((q, cb) => {
       cb({ docs: [] });
       return () => {};

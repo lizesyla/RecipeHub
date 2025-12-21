@@ -192,12 +192,11 @@ export default function Register() {
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-        {/* Butoni kryesor me testID dhe disabled të saktë */}
         <TouchableOpacity
           testID="register-button"
           style={styles.primaryButton}
           onPress={handleSignUp}
-          disabled={loading || !isFormValid}  // ← SHTUAR !isFormValid
+          disabled={loading || !isFormValid} 
         >
           {loading ? (
             <ActivityIndicator size="small" color="#111" />
@@ -209,7 +208,6 @@ export default function Register() {
           )}
         </TouchableOpacity>
 
-        {/* Google butoni me testID */}
         <TouchableOpacity
           testID="google-register-button"
           style={styles.googleButton}
