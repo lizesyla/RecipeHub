@@ -11,6 +11,29 @@ import { COLORS } from "../components/theme";
 
 
 const googleProvider = new GoogleAuthProvider();
+const GoogleLoginButton = React.memo(({ onPress, loading }) => {
+  return (
+    <TouchableOpacity
+      style={styles.googleButton}
+      onPress={onPress}
+      disabled={loading}
+    >
+      {loading ? (
+        <ActivityIndicator size="small" color="#4CAF50" />
+      ) : (
+        <>
+          <Ionicons
+            name="logo-google"
+            size={20}
+            color="#4CAF50"
+            style={styles.googleIcon}
+          />
+          <Text style={styles.googleText}>Sign in with Google</Text>
+        </>
+      )}
+    </TouchableOpacity>
+  );
+});
 
 export default function Login() {
   const router = useRouter();

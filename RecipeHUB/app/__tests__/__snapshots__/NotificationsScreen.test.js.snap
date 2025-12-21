@@ -1,0 +1,83 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NotificationsScreen Snapshot renders correctly 1`] = `null`;
+
+exports[`NotificationsScreen renders correctly and matches snapshot 1`] = `
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
+  style={
+    {
+      "backgroundColor": "#0F0F14",
+      "flex": 1,
+      "padding": 20,
+    }
+  }
+>
+  <Text
+    style={
+      {
+        "color": "#FF5FA2",
+        "fontSize": 22,
+        "fontWeight": "bold",
+        "marginBottom": 20,
+      }
+    }
+  >
+    Notification Settings
+  </Text>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#1A1A22",
+        "borderRadius": 12,
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "padding": 16,
+      }
+    }
+  >
+    <Text
+      style={
+        {
+          "color": "#fff",
+          "fontSize": 16,
+        }
+      }
+    >
+      Enable Notifications for Create
+    </Text>
+    <RCTSwitch
+      accessibilityRole="switch"
+      onChange={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "alignSelf": "flex-start",
+        }
+      }
+      thumbTintColor="#ccc"
+      value={false}
+    />
+  </View>
+  <Text
+    style={
+      {
+        "color": "#aaa",
+        "fontSize": 14,
+        "marginTop": 20,
+      }
+    }
+  >
+    When enabled, you will receive notifications when creating recipes or important updates.
+  </Text>
+</RNCSafeAreaView>
+`;
