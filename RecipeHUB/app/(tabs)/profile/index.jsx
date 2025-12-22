@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -6,7 +6,9 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
-  Image
+  Image,
+  Animated,
+  Alert
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { auth, db } from "../../../firebase";
@@ -18,12 +20,20 @@ import {
   doc,
   getDoc,
   deleteDoc,
-  onSnapshot
+  onSnapshot,
+  updateDoc
 } from "firebase/firestore";
-import { COLORS } from "../../../components/theme"; 
+import * as ImagePicker from "expo-image-picker";
+import * as Notifications from "expo-notifications";
+import { COLORS } from "../../../components/theme";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({ shouldShowAlert: true, shouldPlaySound: true, shouldSetBadge: false })
+});
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const [userData, setUserData] = useState(null);
   const [recipes, setRecipes] = useState([]);
@@ -32,232 +42,173 @@ export default function ProfileScreen() {
 
   const user = auth.currentUser;
 
+  
   const loadMyRecipes = async () => {
     if (!user) return;
-
-    const allRecipesRef = collection(db, "AllRecipes");
-    const q = query(allRecipesRef, where("ownerId", "==", user.uid));
-
+    const q = query(collection(db, "AllRecipes"), where("ownerId", "==", user.uid));
     const snap = await getDocs(q);
     setRecipes(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
   };
 
   const loadFavoritesRealtime = () => {
     if (!user) return;
-
     const favRef = collection(db, "users", user.uid, "favorites");
-
-    const unsub = onSnapshot(favRef, async (snap) => {
-      const ids = snap.docs.map(f => f.id);
-
+    const unsub = onSnapshot(favRef, async snap => {
       const fullFavs = [];
-      for (let id of ids) {
-        const recipeRef = doc(db, "AllRecipes", id);
-        const data = await getDoc(recipeRef);
-        if (data.exists()) {
-          fullFavs.push({ id, ...data.data() });
-        }
+      for (let f of snap.docs) {
+        const r = await getDoc(doc(db, "AllRecipes", f.id));
+        if (r.exists()) fullFavs.push({ id: f.id, ...r.data() });
       }
-
       setFavorites(fullFavs);
       setLoading(false);
     });
-
     return unsub;
   };
+
+  
+  const pickProfileImage = async () => {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert("Permission required", "Gallery access is required!");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.6, base64: true });
+    if (!result.canceled) {
+      await updateDoc(doc(db, "users", user.uid), { photoBase64: result.assets[0].base64 });
+      setUserData(prev => ({ ...prev, photoBase64: result.assets[0].base64 }));
+      await Notifications.scheduleNotificationAsync({ content: { title: "Profile Updated", body: "Profile picture updated!" }, trigger: null });
+    }
+  };
+
+  const updateProfileName = () => {
+    Alert.prompt("Edit Name", "", async name => {
+      if (!name) return;
+      await updateDoc(doc(db, "users", user.uid), { fullName: name });
+      setUserData(prev => ({ ...prev, fullName: name }));
+      await Notifications.scheduleNotificationAsync({ content: { title: "Profile Updated", body: "Name updated!" }, trigger: null });
+    });
+  };
+
+  const updateBio = () => {
+    Alert.prompt("Edit Bio", "", async bio => {
+      if (!bio) return;
+      await updateDoc(doc(db, "users", user.uid), { bio });
+      setUserData(prev => ({ ...prev, bio }));
+      await Notifications.scheduleNotificationAsync({ content: { title: "Profile Updated", body: "Bio updated!" }, trigger: null });
+    });
+  };
+
+  const removeFavorite = async id => await deleteDoc(doc(db, "users", user.uid, "favorites", id));
 
   useFocusEffect(
     useCallback(() => {
       setLoading(true);
-      setUserData({
-        name: user.displayName || "Unnamed",
-        email: user.email,
-        photo: user.photoURL
-      });
-
+      setUserData({ name: user.displayName || "Unnamed", email: user.email, photo: user.photoURL, bio: "" });
       loadMyRecipes();
       const unsubFavs = loadFavoritesRealtime();
-
-      return () => {
-        if (unsubFavs) unsubFavs();
-      };
+      Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+      return () => { if (unsubFavs) unsubFavs(); };
     }, [])
   );
 
-  const removeFavorite = async (id) => {
-    await deleteDoc(doc(db, "users", user.uid, "favorites", id));
-  };
   useEffect(() => {
     const fetchUser = async () => {
-      const user = auth.currentUser;
       if (!user) return;
-
-      const docRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        setUserData(docSnap.data());
-      }
-
+      const docSnap = await getDoc(doc(db, "users", user.uid));
+      if (docSnap.exists()) setUserData(docSnap.data());
       setLoading(false);
     };
-
     fetchUser();
   }, []);
 
-  if (!user) {
-    return (
-      <View style={styles.center}>
-        <Text style={{ color: "#fff" }}>Please log in to view your profile.</Text>
-      </View>
-    );
-  }
+  if (!user) return <View style={styles.center}><Text style={{ color: "#fff" }}>Please log in.</Text></View>;
+  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.buttonGreen} /></View>;
 
-  if (loading) {
+ 
+  const renderCard = (item, remove = false) => {
+    const slideAnim = new Animated.Value(30);
+    const opacityAnim = new Animated.Value(0);
+    Animated.parallel([
+      Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
+      Animated.timing(opacityAnim, { toValue: 1, duration: 500, useNativeDriver: true })
+    ]).start();
+
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#fc91e5ff" />
-      </View>
+      <Animated.View key={item.id} style={{ ...styles.card, opacity: opacityAnim, transform: [{ translateY: slideAnim }] }}>
+        <Text style={styles.cardTitle}>{item.title} {remove ? "💔" : "🍽️"}</Text>
+        <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+          {!remove && <TouchableOpacity onPress={() => router.push(`/recipe/${item.id}`)} style={styles.cardBtn}><Text style={styles.cardBtnText}>View</Text></TouchableOpacity>}
+          <TouchableOpacity onPress={() => remove ? removeFavorite(item.id) : router.push(`/edit/${item.id}`)} style={styles.cardBtn}>
+            <Text style={{ ...styles.cardBtnText, color: remove ? COLORS.danger : COLORS.buttonGreen }}>{remove ? "Remove" : "Edit"}</Text>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
     );
-  }
+  };
 
   return (
+    <Animated.ScrollView style={{ flex: 1, opacity: fadeAnim, backgroundColor: COLORS.background }} contentContainerStyle={{ paddingBottom: 40 }}>
     
-    <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
-       <View style={styles.profileHeader}>
-  <Image
-    source={{
-      uri: userData?.photoBase64
-        ? `data:image/jpeg;base64,${userData.photoBase64}`
-        : userData?.photo ||
-          "https://cdn-icons-png.flaticon.com/512/149/149071.png",
-    }}
-    style={styles.avatar}
-  />
-
-  <Text style={styles.name}>
-    {userData?.fullName || userData?.name}
-  </Text>
-
-  <Text style={styles.email}>{userData?.email}</Text>
-</View>
-
-
-      <Text style={styles.sectionHeader}>My Recipes</Text>
-
-      {recipes.length === 0 && (
-        <Text style={styles.emptyText}>You haven’t added any recipes yet.</Text>
-      )}
-
-      {recipes.map((item) => (
-        <View key={item.id} style={styles.recipeBox}>
-
-          <TouchableOpacity
-            onPress={() => router.push(`/recipe/${item.id}`)}
-          >
-            <Text style={styles.recipeText}>{item.title}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => router.push(`/edit/${item.id}`)}
-            style={styles.editBtn}
-          >
-            <Text style={styles.editText}>Edit</Text>
-          </TouchableOpacity>
-
-        </View>
-
-      ))}
-
-      <Text style={styles.sectionHeader}>Favorite Recipes</Text>
-
-      {favorites.length === 0 && (
-        <Text style={styles.emptyText}>No favorite recipes yet.</Text>
-      )}
-
-      {favorites.map((fav) => (
-        <TouchableOpacity
-          key={fav.id}
-          style={styles.recipeBox}
-          onPress={() => {
-            if (fav.ownerId === "themealdb" || fav.isFromAPI) {
-              router.push(`/(tabs)/api-recipe/${fav.id}`);
-            } else {
-              router.push(`/recipe/${fav.id}`);
-            }
+      <View style={styles.profileRow}>
+        <Image
+          source={{
+            uri: userData?.photoBase64
+              ? `data:image/jpeg;base64,${userData.photoBase64}`
+              : userData?.photo ||
+              "https://cdn-icons-png.flaticon.com/512/149/149071.png"
           }}
-        >
-          <Text style={styles.recipeText}>{fav.title}</Text>
+          style={styles.avatar}
+        />
 
-          <TouchableOpacity
-            onPress={() => removeFavorite(fav.id)}
-            style={styles.removeBtn}
-          >
-            <Text style={styles.removeText}>Remove</Text>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      ))}
+        <View style={styles.userInfo}>
+         
+          <View style={styles.row}>
+            <Text style={styles.name}>{userData?.fullName || userData?.name}</Text>
+            <TouchableOpacity onPress={updateProfileName}>
+              <Text style={styles.editInline}>✏️</Text>
+            </TouchableOpacity>
+          </View>
 
-    </ScrollView>
+          <Text style={styles.email}>{userData?.email}</Text>
+
+         
+          <View style={styles.row}>
+            <Text style={styles.bio}>{userData?.bio || "No bio yet."}</Text>
+            <TouchableOpacity onPress={updateBio}>
+              <Text style={styles.editInline}>✏️</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
+
+      
+      <Text style={styles.sectionHeader}>My Recipes 🍳 ({recipes.length})</Text>
+      {recipes.length ? recipes.map(r => renderCard(r)) : <Text style={styles.emptyText}>You haven’t added any recipes yet.</Text>}
+
+    
+      <Text style={styles.sectionHeader}>Favorites ❤️ ({favorites.length})</Text>
+      {favorites.length ? favorites.map(f => renderCard(f, true)) : <Text style={styles.emptyText}>No favorites yet.</Text>}
+    </Animated.ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  profileRow: { flexDirection: "row", alignItems: "center", margin: 20, backgroundColor: COLORS.card, padding: 15, borderRadius: 16 },
+  avatar: { width: 90, height: 90, borderRadius: 50, marginRight: 15 },
+  userInfo: { flex: 1 },
+  name: { fontSize: 22, fontWeight: "bold", color: COLORS.text },
+  email: { fontSize: 16, color: COLORS.textMuted, marginBottom: 4 },
+  bio: { fontSize: 14, color: COLORS.text, fontStyle: "italic", marginBottom: 4 },
+  editText: { color: COLORS.buttonGreen, fontWeight: "bold", marginBottom: 4 },
+  sectionHeader: { fontSize: 20, fontWeight: "bold", color: COLORS.buttonGreen, marginVertical: 12, marginLeft: 20 },
+  emptyText: { color: COLORS.textMuted, fontStyle: "italic", marginLeft: 20 },
+  card: { backgroundColor: COLORS.card, padding: 14, borderRadius: 14, marginHorizontal: 20, marginBottom: 12, shadowColor: "#000", shadowOpacity: 0.05, shadowOffset: { width: 0, height: 1 }, shadowRadius: 4 },
+  cardTitle: { fontSize: 16, fontWeight: "bold", color: COLORS.text, marginBottom: 6 },
+  cardBtn: { marginLeft: 8 },
+  cardBtnText: { color: COLORS.buttonGreen, fontWeight: "bold" },
+  row: { flexDirection: "row", alignItems: "center", marginBottom: 4 },
+  editInline: { color: COLORS.buttonGreen, fontWeight: "bold", marginLeft: 6, fontSize: 16 }
 
-  profileHeader: {
-    alignItems: "center",
-    marginBottom: 25,
-    backgroundColor: COLORS.card,
-    padding: 20,
-    borderRadius: 12
-  },
-
-  avatar: {
-    width: 90,
-    height: 90,
-    borderRadius: 50,
-    marginBottom: 10
-  },
-
-  name: { fontSize: 22, color: COLORS.text, fontWeight: "bold" },
-  email: { color: COLORS.textMuted, marginTop: 4 },
-
-  sectionHeader: {
-    color: COLORS.buttonGreen,
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 25,
-    marginBottom: 10
-  },
-
-  emptyText: { color: COLORS.textMuted, marginBottom: 10 },
-
-  recipeBox: {
-    backgroundColor: COLORS.card,
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 8
-  },
-
-  recipeText: { color: COLORS.text, fontSize: 16, fontWeight: "bold" },
-
-  editBtn: {
-    position: "absolute",
-    right: 10,
-    top: 12,
-    padding: 5
-  },
-
-  editText: { color: COLORS.buttonGreen, fontWeight: "bold" },
-
-  removeBtn: {
-    position: "absolute",
-    right: 10,
-    top: 12,
-    padding: 5
-  },
-
-  removeText: { color: COLORS.danger, fontWeight: "bold" }
 });
