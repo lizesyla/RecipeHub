@@ -9,7 +9,8 @@ import {
   Image,
   Animated,
   Modal,
-  TextInput
+  TextInput,
+  Alert
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { auth, db } from "../../../firebase";
@@ -23,6 +24,7 @@ export default function ProfileScreen() {
   const toastAnim = useRef(new Animated.Value(0)).current;
 
   const [userData, setUserData] = useState(null);
+  const [localPhoto, setLocalPhoto] = useState(null); 
   const [recipes, setRecipes] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,13 +43,12 @@ export default function ProfileScreen() {
     setToastMessage(msg);
     setShowToast(true);
     Animated.timing(toastAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
-
     setTimeout(() => {
       Animated.timing(toastAnim, { toValue: 0, duration: 300, useNativeDriver: true }).start(() => setShowToast(false));
     }, 2000);
   };
 
-  
+ 
   const loadMyRecipes = async () => {
     if (!user) return;
     const q = query(collection(db, "AllRecipes"), where("ownerId", "==", user.uid));
@@ -70,23 +71,44 @@ export default function ProfileScreen() {
     return unsub;
   };
 
- 
+  
   const pickProfileImage = async () => {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) return;
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") return Alert.alert("Permission needed", "Gallery access is required.");
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.6,
-      base64: true
     });
+
     if (!result.canceled) {
-      await updateDoc(doc(db, "users", user.uid), { photoBase64: result.assets[0].base64 });
-      setUserData(prev => ({ ...prev, photoBase64: result.assets[0].base64 }));
+      const uri = result.assets[0].uri;
+      setLocalPhoto(uri); 
+      await updateDoc(doc(db, "users", user.uid), { photo: uri });
+      setUserData(prev => ({ ...prev, photo: uri }));
       showToastMessage("Profile picture updated!");
     }
   };
 
+  const takeProfilePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") return Alert.alert("Permission needed", "Camera access is required.");
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.6,
+    });
+
+    if (!result.canceled) {
+      const uri = result.assets[0].uri;
+      setLocalPhoto(uri); 
+      await updateDoc(doc(db, "users", user.uid), { photo: uri });
+      setUserData(prev => ({ ...prev, photo: uri }));
+      showToastMessage("Profile picture updated!");
+    }
+  };
+
+  
   const openEditModal = (field) => {
     setEditField(field);
     setTempValue(userData[field] || "");
@@ -103,7 +125,7 @@ export default function ProfileScreen() {
 
   const removeFavorite = async id => await deleteDoc(doc(db, "users", user.uid, "favorites", id));
 
-
+  
   useFocusEffect(
     useCallback(() => {
       setLoading(true);
@@ -128,39 +150,72 @@ export default function ProfileScreen() {
   if (!user) return <View style={styles.center}><Text style={{ color: "#fff" }}>Please log in.</Text></View>;
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.buttonGreen} /></View>;
 
- 
-  const renderCard = (item, remove = false) => {
-    const slideAnim = new Animated.Value(30);
-    const opacityAnim = new Animated.Value(0);
-    Animated.parallel([
-      Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
-      Animated.timing(opacityAnim, { toValue: 1, duration: 500, useNativeDriver: true })
-    ]).start();
 
-    return (
-      <Animated.View key={item.id} style={{ ...styles.card, opacity: opacityAnim, transform: [{ translateY: slideAnim }] }}>
-        <Text style={styles.cardTitle}>{item.title} {remove ? "💔" : "🍽️"}</Text>
-        <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
-          {!remove && <TouchableOpacity onPress={() => router.push(`/recipe/${item.id}`)} style={styles.cardBtn}><Text style={styles.cardBtnText}>View</Text></TouchableOpacity>}
-          <TouchableOpacity onPress={() => remove ? removeFavorite(item.id) : router.push(`/edit/${item.id}`)} style={styles.cardBtn}>
-            <Text style={{ ...styles.cardBtnText, color: remove ? COLORS.danger : COLORS.buttonGreen }}>{remove ? "Remove" : "Edit"}</Text>
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
+const renderCard = (item, remove = false) => {
+  const slideAnim = new Animated.Value(30);
+  const opacityAnim = new Animated.Value(0);
+  Animated.parallel([
+    Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
+    Animated.timing(opacityAnim, { toValue: 1, duration: 500, useNativeDriver: true })
+  ]).start();
+
+  const handleDelete = async () => {
+    Alert.alert(
+      "Delete Recipe",
+      "Are you sure you want to delete this recipe? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteDoc(doc(db, "AllRecipes", item.id));
+              showToastMessage("Recipe deleted!");
+              setRecipes(prev => prev.filter(r => r.id !== item.id));
+              setFavorites(prev => prev.filter(f => f.id !== item.id));
+            } catch (err) {
+              console.log(err);
+              Alert.alert("Error", "Failed to delete recipe.");
+            }
+          }
+        }
+      ]
     );
   };
 
   return (
+    <Animated.View key={item.id} style={{ ...styles.card, opacity: opacityAnim, transform: [{ translateY: slideAnim }] }}>
+      <Text style={styles.cardTitle}>{item.title} {remove ? "❤️" : "🍽️"}</Text>
+      <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+        {!remove && <TouchableOpacity onPress={() => router.push(`/recipe/${item.id}`)} style={styles.cardBtn}><Text style={styles.cardBtnText}>View</Text></TouchableOpacity>}
+        {!remove && <TouchableOpacity onPress={() => router.push(`/edit/${item.id}`)} style={styles.cardBtn}><Text style={{ ...styles.cardBtnText, color: COLORS.buttonGreen }}>Edit</Text></TouchableOpacity>}
+        {!remove && <TouchableOpacity onPress={handleDelete} style={styles.cardBtn}><Text style={{ ...styles.cardBtnText, color: COLORS.danger }}>Delete</Text></TouchableOpacity>}
+        {remove && <TouchableOpacity onPress={() => removeFavorite(item.id)} style={styles.cardBtn}><Text style={{ ...styles.cardBtnText, color: COLORS.danger }}>Remove</Text></TouchableOpacity>}
+      </View>
+    </Animated.View>
+  );
+};
+
+
+  return (
     <>
       <Animated.ScrollView style={{ flex: 1, opacity: fadeAnim, backgroundColor: COLORS.background }} contentContainerStyle={{ paddingBottom: 40 }}>
-       
         <View style={styles.profileRow}>
-          <Image
-            source={{
-              uri: userData?.photoBase64 ? `data:image/jpeg;base64,${userData.photoBase64}` : userData?.photo || "https://cdn-icons-png.flaticon.com/512/149/149071.png"
-            }}
-            style={styles.avatar}
-          />
+          <View style={{ alignItems: 'center', width: 90 }}>
+            <Image
+              source={{ uri: localPhoto || userData?.photo || "https://cdn-icons-png.flaticon.com/512/149/149071.png" }}
+              style={styles.avatar}
+            />
+            <View style={{ flexDirection: "row", gap: 6, position: "absolute", bottom: 0, right: -5 }}>
+              <TouchableOpacity onPress={pickProfileImage} style={styles.imagePickerBtn}>
+                <Text style={{ color: '#fff', fontWeight: 'bold' }}>📷</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={takeProfilePhoto} style={styles.imagePickerBtn}>
+                <Text style={{ color: '#fff', fontWeight: 'bold' }}>📸</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
 
           <View style={styles.userInfo}>
             <View style={styles.row}>
@@ -184,12 +239,10 @@ export default function ProfileScreen() {
         <Text style={styles.sectionHeader}>My Recipes 🍳 ({recipes.length})</Text>
         {recipes.length ? recipes.map(r => renderCard(r)) : <Text style={styles.emptyText}>You haven’t added any recipes yet.</Text>}
 
-      
         <Text style={styles.sectionHeader}>Favorites ❤️ ({favorites.length})</Text>
         {favorites.length ? favorites.map(f => renderCard(f, true)) : <Text style={styles.emptyText}>No favorites yet.</Text>}
       </Animated.ScrollView>
 
-      
       <Modal visible={modalVisible} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -214,7 +267,6 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
-      
       {showToast && (
         <Animated.View style={[styles.toast, { opacity: toastAnim }]}>
           <Text style={{ color: "#fff" }}>{toastMessage}</Text>
@@ -245,4 +297,5 @@ const styles = StyleSheet.create({
   modalTitle: { color: COLORS.text, fontWeight:'bold', marginBottom:12 },
   input: { backgroundColor: COLORS.background, padding:10, borderRadius:8, color: COLORS.text, marginBottom:12, minHeight:40, textAlignVertical:'top' },
   toast: { position:'absolute', bottom:50, left:20, right:20, backgroundColor:'rgba(0,0,0,0.8)', padding:12, borderRadius:8, alignItems:'center' },
+  imagePickerBtn: { backgroundColor: COLORS.buttonGreen, padding: 6, borderRadius: 20, borderWidth: 2, borderColor: '#fff', marginHorizontal: 2 }
 });
